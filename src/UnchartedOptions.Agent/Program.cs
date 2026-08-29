@@ -51,7 +51,7 @@ try
 
     if (verifyOnly)
     {
-        return Report(ReadinessCheck.Run(account, profile, expectedEquity: 100_000m));
+        return Report(ReadinessCheck.Run(account, profile, startingBalance: 100_000m));
     }
 
     MarketClock clock = await cli.GetClockAsync();

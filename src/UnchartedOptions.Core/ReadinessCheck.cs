@@ -26,7 +26,13 @@ public sealed record ReadinessReport
 /// </remarks>
 public static class ReadinessCheck
 {
-    public static ReadinessReport Run(Account account, TradingProfile profile, decimal expectedEquity)
+    /// <param name="startingBalance">
+    /// The balance the account was required to be funded at. Reported for comparison, but not
+    /// asserted: equity moves the moment the agent trades, so a hard equality check would turn
+    /// every run after the first fill into a failure. What is asserted is that equity is
+    /// present and non-zero -- an account returning nothing cannot be sized against.
+    /// </param>
+    public static ReadinessReport Run(Account account, TradingProfile profile, decimal startingBalance)
     {
         ArgumentNullException.ThrowIfNull(account);
         ArgumentNullException.ThrowIfNull(profile);
@@ -56,11 +62,14 @@ public static class ReadinessCheck
             },
             new ReadinessItem
             {
-                Name = $"Equity is {Money.Usd(expectedEquity)}",
-                Passed = account.Equity == expectedEquity,
-                Detail = account.Equity == expectedEquity
-                    ? Money.Usd(account.Equity)
-                    : $"{Money.Usd(account.Equity)}, expected {Money.Usd(expectedEquity)}",
+                Name = "Equity is reported and non-zero",
+                Passed = account.Equity > 0m,
+                Detail = account.Equity <= 0m
+                    ? "account reports no equity -- nothing can be sized against it"
+                    : account.Equity == startingBalance
+                        ? $"{Money.Usd(account.Equity)} (at the required starting balance)"
+                        : $"{Money.Usd(account.Equity)} against a {Money.Usd(startingBalance)} "
+                          + "starting balance -- expected once trading has begun",
             },
         ];
 
