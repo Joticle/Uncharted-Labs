@@ -3,38 +3,37 @@ using UnchartedOptions.Core;
 
 // Uncharted Options -- one evaluation cycle, then exit.
 //
-// Single-shot by design, so the same binary runs identically under GitHub Actions cron,
-// Task Scheduler, or a bare terminal. Nothing is held between runs: the broker is the
-// state, which is the same principle as the risk model.
+// Single-shot by design, so the same binary runs identically under GitHub Actions cron, a
+// scheduler, or a terminal. Nothing is held between runs: the broker is the state, which is
+// the same principle as the risk model. The decision log is written, never read back.
 //
-//   (no flags)      dry run against the dev account
-//   --live          actually place orders
-//   --comp          target the judged competition account
-//   --verify        check the account is configured correctly, then exit
-//
-// Reaching the competition account with real orders takes both --comp and --live, and is
-// refused outright before the competition opens.
+//   (no flags)   dry run against the dev account
+//   --live       actually place and close orders
+//   --comp       target the judged competition account
+//   --preflight  readiness report, then exit
+//   --verify     account configuration check, then exit
 
 IReadOnlyList<string> argv = args;
 bool live = argv.Contains("--live", StringComparer.OrdinalIgnoreCase);
 bool verifyOnly = argv.Contains("--verify", StringComparer.OrdinalIgnoreCase);
-TradingProfile profile = TradingProfile.FromArgs(argv);
-CompetitionCalendar calendar = new();
-DateTimeOffset now = DateTimeOffset.UtcNow;
+bool preflight = argv.Contains("--preflight", StringComparer.OrdinalIgnoreCase);
 
+TradingProfile profile = TradingProfile.FromArgs(argv);
 AgentConfig config = AgentConfig.FromArgs(argv);
+CompetitionCalendar calendar = new();
+RiskMandate mandate = config.Mandate;
+DateTimeOffset now = DateTimeOffset.UtcNow;
+DateOnly today = DateOnly.FromDateTime(now.UtcDateTime);
 string underlying = config.Underlying;
 
 Console.WriteLine($"Uncharted Options  [{profile.Description}]  {(live ? "LIVE" : "dry run")}");
-Console.WriteLine(new string('=', 68));
+Console.WriteLine(new string('=', 72));
 
-// Hard guard. The competition account must not carry test orders, so an order against it
-// before the opening bell is refused here rather than being left to discipline.
+// The judged account must not carry test orders. Refused here rather than left to discipline.
 if (profile.IsCompetition && live && !calendar.MayOpenNewPositions(now))
 {
     Console.Error.WriteLine($"REFUSED: {calendar.Describe(now)}");
     Console.Error.WriteLine("The competition account cannot be traded outside the competition window.");
-    Console.Error.WriteLine("Use the dev account for testing (omit --comp).");
     return 2;
 }
 
@@ -42,49 +41,43 @@ CliRunner runner = new(profile: profile.CliProfile);
 AlpacaCli cli = new(runner);
 ChainReader chains = new(runner);
 PositionReader positions = new(runner);
-RiskMandate mandate = config.Mandate;
+CorporateActionsReader corporateActions = new(runner);
+
+List<Decision> decisions = [];
 
 try
 {
     Account account = await cli.GetAccountAsync();
-    MarketClock clock = await cli.GetClockAsync();
 
     if (verifyOnly)
     {
-        ReadinessReport report = ReadinessCheck.Run(account, profile, expectedEquity: 100_000m);
-
-        foreach (ReadinessItem item in report.Items)
-        {
-            Console.WriteLine($"  [{(item.Passed ? "PASS" : "FAIL")}]  {item.Name}");
-            Console.WriteLine($"          {item.Detail}");
-        }
-
-        Console.WriteLine();
-        Console.WriteLine(report.Ready
-            ? "READY. This account is configured to trade defined-risk verticals."
-            : "NOT READY. Fix the failures above before the opening bell.");
-
-        return report.Ready ? 0 : 3;
+        return Report(ReadinessCheck.Run(account, profile, expectedEquity: 100_000m));
     }
+
+    MarketClock clock = await cli.GetClockAsync();
+    IReadOnlyList<OpenPosition> open = await positions.GetOpenPositionsAsync();
+    decimal existingExposure = PortfolioExposure.ForUnderlying(open, underlying);
+    decimal spot = await cli.GetUnderlyingMidAsync(underlying);
+
+    // Earnings come from an explicit list; ex-dividends from the broker. Neither is inferred.
+    List<BlackoutEvent> events = [.. BlackoutCalendar.ParseEarnings(config.EarningsDates)];
+    events.AddRange(await corporateActions.GetExDividendsAsync(
+        [underlying], today.AddDays(-10), today.AddDays(30)));
+
+    BlackoutCalendar blackout = new(events, config.BlackoutSessions);
+    BlackoutVerdict blackoutVerdict = blackout.Check(underlying, today);
 
     Console.WriteLine($"Account      {account.AccountNumber}   equity {Money.Usd(account.Equity)}   options level {account.OptionsTradingLevel}");
     Console.WriteLine($"Market       {(clock.IsOpen ? "OPEN" : "closed")}");
     Console.WriteLine($"Calendar     {calendar.Describe(now)}");
     Console.WriteLine($"Target       {underlying} {config.TargetExpiration:yyyy-MM-dd}, {config.WidthPolicy}");
+    Console.WriteLine($"{underlying,-12} {Money.Usd(spot)}");
+    Console.WriteLine($"Positions    {open.Count} legs open, {Money.Usd(PortfolioExposure.Total(open))} at risk");
+    Console.WriteLine($"Blackout     {blackoutVerdict.Explanation}");
+    Console.WriteLine($"Events       {events.Count} on file ({events.Count(e => e.Reason == BlackoutReason.Earnings)} earnings, {events.Count(e => e.Reason == BlackoutReason.ExDividend)} ex-dividend)");
+    Console.WriteLine();
 
-    IReadOnlyList<OpenPosition> open = await positions.GetOpenPositionsAsync();
-    decimal existingExposure = PortfolioExposure.ForUnderlying(open, underlying);
-
-    Console.WriteLine($"Positions    {open.Count} open, {Money.Usd(PortfolioExposure.Total(open))} at risk total");
-    if (existingExposure > 0m)
-    {
-        Console.WriteLine($"             {underlying} already carries {Money.Usd(existingExposure)} -- netted off the 5 gate");
-    }
-
-    decimal spot = await cli.GetUnderlyingMidAsync(underlying);
-
-    // Manage what is already held before considering anything new. An agent that opens
-    // faster than it closes is not running a strategy, it is accumulating.
+    // ---- manage what is already held ----
     IReadOnlyDictionary<string, DateTimeOffset> fills = open.Count > 0
         ? await cli.GetFillTimesAsync()
         : new Dictionary<string, DateTimeOffset>();
@@ -95,105 +88,179 @@ try
     foreach (SpreadPosition held in heldSpreads)
     {
         ExitDecision decision = ExitLadder.Evaluate(held, exitPolicy, spot, now, calendar);
-        Console.WriteLine($"Manage       {held.Spread.Underlying} {held.Spread.Expiration:MM-dd} "
-                        + $"x{held.Contracts}: {decision.Reason} -- {decision.Explanation}");
+        Console.WriteLine($"Manage       {held.Spread.Underlying} x{held.Contracts}: {decision.Reason} -- {decision.Explanation}");
 
         if (!decision.ShouldClose)
         {
             continue;
         }
 
-        // Close at the mark rather than crossing blindly; both legs pay their own spread.
         OrderSubmission close = await cli.CloseSpreadAsync(
-            held.Spread,
-            held.Contracts,
-            limitPrice: Math.Max(0.01m, held.CurrentValue),
-            dryRun: !live);
+            held.Spread, held.Contracts, Math.Max(0.01m, held.CurrentValue), dryRun: !live);
 
         Console.WriteLine(close.WasDryRun
-            ? $"             close validated ({decision.Reason}), nothing placed"
+            ? $"             close validated ({decision.Reason})"
             : $"             CLOSED, order {close.OrderId}");
     }
 
-    Console.WriteLine($"{underlying,-12} {Money.Usd(spot)}");
-    Console.WriteLine();
-
+    // ---- consider a new position ----
     IReadOnlyList<OptionContract> chain = await chains.GetChainAsync(
-        underlying,
-        config.TargetExpiration,
-        OptionType.Call,
-        strikeFrom: Math.Floor(spot),
-        strikeTo: Math.Ceiling(spot) + config.StrikeSearchBand,
-        limit: 200);
+        underlying, config.TargetExpiration, OptionType.Call,
+        Math.Floor(spot), Math.Ceiling(spot) + config.StrikeSearchBand, limit: 200);
 
     int quoted = chain.Count(c => c.HasGreeks && c.HasTwoSidedQuote);
     int inBand = chain.Count(c => c.HasGreeks && c.HasTwoSidedQuote
-                                  && c.Delta >= mandate.MinLongLegDelta
-                                  && c.Delta <= mandate.MaxLongLegDelta);
+                                  && c.Delta >= mandate.MinLongLegDelta && c.Delta <= mandate.MaxLongLegDelta);
 
-    Console.WriteLine($"Chain        {chain.Count} contracts, {quoted} quoted "
-                    + $"({(chain.Count == 0 ? 0 : quoted * 100 / chain.Count)}%), {inBand} in the delta band");
+    Console.WriteLine();
+    Console.WriteLine($"Chain        {chain.Count} contracts, {quoted} quoted ({Pct(quoted, chain.Count)}%), {inBand} in the delta band");
 
-    // Starvation shows up as a silent no-trade day otherwise. Say it out loud beforehand.
     if (inBand == 0)
     {
-        Console.WriteLine("             WARNING: no quoted contract in the delta band. Nothing is tradeable here.");
+        Console.WriteLine("             WARNING: nothing quoted in the delta band. Not tradeable here.");
     }
     else if (inBand <= 2 || quoted * 2 < chain.Count)
     {
-        Console.WriteLine($"             WARNING: thin bench -- {inBand} candidate(s), "
-                        + $"{chain.Count - quoted} of {chain.Count} contracts unquoted.");
+        Console.WriteLine($"             WARNING: thin bench -- {inBand} candidate(s), {chain.Count - quoted} of {chain.Count} unquoted.");
     }
 
+    if (preflight)
+    {
+        Console.WriteLine();
+        Console.WriteLine("PREFLIGHT SUMMARY");
+        Console.WriteLine($"  account          {account.AccountNumber} ({profile.Description})");
+        Console.WriteLine($"  options level    {account.OptionsTradingLevel} {(account.CanTradeSpreads ? "OK" : "-- BELOW 3, multi-leg will be rejected")}");
+        Console.WriteLine($"  equity           {Money.Usd(account.Equity)}");
+        Console.WriteLine($"  market           {(clock.IsOpen ? "OPEN" : "closed")}");
+        Console.WriteLine($"  calendar         {calendar.PermissionAt(now)}");
+        Console.WriteLine($"  blackout         {(blackoutVerdict.IsBlackedOut ? "YES -- " + blackoutVerdict.Explanation : "clear")}");
+        Console.WriteLine($"  bench            {inBand} candidate(s) of {quoted} quoted at {config.TargetExpiration:yyyy-MM-dd}");
+        Console.WriteLine($"  the 3            {Money.Usd(account.Equity * mandate.MaxRiskPerTradePct)} per-trade ceiling");
+        Console.WriteLine($"  the 5            {Money.Usd(existingExposure)} of {Money.Usd(account.Equity * mandate.MaxSymbolExposurePct)} used on {underlying}");
+
+        bool ready = account.CanTradeSpreads && inBand > 0 && !blackoutVerdict.IsBlackedOut;
+        Console.WriteLine();
+        Console.WriteLine(ready ? "READY to trade at the open." : "NOT READY -- see above.");
+        return ready ? 0 : 3;
+    }
+
+    // ---- the gates, in order, each one recorded ----
+    //
+    // Evaluation always runs, even when the agent is barred from trading. A blackout or a
+    // closed competition window suppresses the order, not the reasoning: the record of what
+    // would have been refused, and on which gate, is the evidence the mandate is enforced.
     SpreadCandidate candidate = SpreadSelector.SelectBullCall(underlying, chain, mandate, config.WidthPolicy);
-    foreach (WidthEvaluation e in candidate.Evaluations)
+
+    bool barred = false;
+
+    if (blackoutVerdict.IsBlackedOut)
     {
-        Console.WriteLine($"  width ${e.Width,-3:F0}  {(e.Qualified ? "OK  " : "no  ")}{e.Detail}");
+        barred = true;
+        decisions.Add(new Decision
+        {
+            Underlying = underlying,
+            Verdict = Verdict.SKIPPED,
+            Gate = "blackout",
+            Finding = blackoutVerdict.Explanation,
+        });
+    }
+    else if (!calendar.MayOpenNewPositions(now))
+    {
+        barred = true;
+        decisions.Add(new Decision
+        {
+            Underlying = underlying,
+            Verdict = Verdict.SKIPPED,
+            Gate = "competition-calendar",
+            Finding = calendar.Describe(now),
+        });
     }
 
-    Console.WriteLine($"Selection    {candidate.Reasoning}");
-
-    if (!candidate.Found)
+    foreach (WidthEvaluation e in candidate.Evaluations.Where(e => !e.Qualified))
     {
-        Console.WriteLine("\nNo spread met the mandate. Nothing to submit.");
-        return 0;
+        decisions.Add(RejectedWidth(underlying, e));
     }
 
-    VerticalSpread spread = candidate.Spread!;
-
-    SizingResult sizing = PositionSizer.Size(new SizingRequest
+    if (!candidate.Found && candidate.Evaluations.Count == 0)
     {
-        Account = account,
-        Spread = spread,
-        ExistingSymbolExposure = existingExposure,
-        Mandate = mandate,
-    });
+        decisions.Add(new Decision
+        {
+            Underlying = underlying,
+            Verdict = Verdict.REJECTED,
+            Gate = "delta-band",
+            Finding = candidate.Reasoning,
+        });
+    }
+    else if (candidate.Found)
+    {
+        VerticalSpread spread = candidate.Spread!;
+        SizingResult sizing = PositionSizer.Size(new SizingRequest
+        {
+            Account = account,
+            Spread = spread,
+            ExistingSymbolExposure = existingExposure,
+            Mandate = mandate,
+        });
 
-    Console.WriteLine($"Sizing       {sizing.Explanation}");
+        WidthEvaluation chosen = candidate.Evaluations.First(e => e.Qualified && e.Width == spread.StrikeWidth);
+
+        // A candidate that cleared every gate but is barred by the window is recorded as
+        // skipped rather than taken -- the sizing stands, the order does not.
+        decisions.Add(barred && sizing.ShouldTrade
+            ? Barred(underlying, spread, sizing, candidate.LongLegDelta, account,
+                     blackoutVerdict.IsBlackedOut ? "blackout" : "competition-calendar")
+            : Sized(underlying, spread, chosen, sizing, account, candidate.LongLegDelta));
+
+        if (!barred && sizing.ShouldTrade && account.CanTradeSpreads)
+        {
+            OrderSubmission submission = await cli.SubmitSpreadAsync(
+                spread, sizing.Contracts, spread.NetDebit, dryRun: !live);
+
+            Console.WriteLine(submission.WasDryRun
+                ? "Broker validated the order. Nothing was placed."
+                : $"ORDER PLACED. id {submission.OrderId}");
+        }
+        else if (!barred && !account.CanTradeSpreads)
+        {
+            Console.Error.WriteLine($"REFUSED: options level {account.OptionsTradingLevel}; multi-leg needs 3.");
+        }
+    }
+
+    // ---- write the record ----
     Console.WriteLine();
-
-    if (!sizing.ShouldTrade)
+    Console.WriteLine("DECISIONS");
+    foreach (Decision d in decisions)
     {
-        Console.WriteLine("Mandate declined this spread. Nothing to submit.");
-        return 0;
+        Console.WriteLine("  " + d.ToLine());
     }
 
-    if (!account.CanTradeSpreads)
+    decimal totalRisk = PortfolioExposure.Total(open);
+
+    LogRun logRun = new()
     {
-        Console.Error.WriteLine(
-            $"REFUSED: options trading level {account.OptionsTradingLevel}; multi-leg spreads need level 3.");
-        return 4;
-    }
+        RunId = DecisionLog.NewRunId(now),
+        Timestamp = DecisionLog.Stamp(now),
+        Account = account.AccountNumber,
+        Profile = profile.CliProfile,
+        IsCompetition = profile.IsCompetition,
+        MarketOpen = clock.IsOpen,
+        Equity = Math.Round(account.Equity, 2),
+        CalendarState = calendar.PermissionAt(now).ToString(),
+        RiskPerTrade = new GateUtilisation
+        {
+            Label = "risk per trade",
+            CeilingPercent = Math.Round(mandate.MaxRiskPerTradePct * 100m, 2),
+            CeilingDollars = Math.Round(account.Equity * mandate.MaxRiskPerTradePct, 2),
+            DeployedDollars = Math.Round(totalRisk, 2),
+            DeployedPercent = account.Equity <= 0m ? 0m : Math.Round(totalRisk / account.Equity * 100m, 2),
+        },
+        SymbolExposure = DecisionLog.ExposureGates(open, account.Equity, mandate),
+        Decisions = decisions,
+    };
 
-    OrderSubmission submission = await cli.SubmitSpreadAsync(
-        spread,
-        sizing.Contracts,
-        limitPrice: spread.NetDebit,
-        dryRun: !live);
-
-    Console.WriteLine(submission.WasDryRun
-        ? "Broker validated the order. Nothing was placed."
-        : $"ORDER PLACED. id {submission.OrderId}");
+    DecisionLog.Append(config.LogDirectory, logRun);
+    Console.WriteLine();
+    Console.WriteLine($"Logged {decisions.Count} decision(s) to {config.LogDirectory}/decisions.jsonl");
 
     return 0;
 }
@@ -202,3 +269,129 @@ catch (AlpacaCliException ex)
     Console.Error.WriteLine($"FAILED: {ex.Message}");
     return 1;
 }
+catch (FormatException ex)
+{
+    // A malformed blackout entry is a configuration error, not a crash. It must still stop
+    // the run: a silently dropped earnings date is an underlying the agent believes is clear.
+    Console.Error.WriteLine($"CONFIGURATION ERROR: {ex.Message}");
+    return 5;
+}
+
+static int Pct(int part, int whole) => whole == 0 ? 0 : part * 100 / whole;
+
+static int Report(ReadinessReport report)
+{
+    foreach (ReadinessItem item in report.Items)
+    {
+        Console.WriteLine($"  [{(item.Passed ? "PASS" : "FAIL")}]  {item.Name}");
+        Console.WriteLine($"          {item.Detail}");
+    }
+
+    Console.WriteLine();
+    Console.WriteLine(report.Ready
+        ? "READY. This account is configured to trade defined-risk verticals."
+        : "NOT READY. Fix the failures above before the opening bell.");
+
+    return report.Ready ? 0 : 3;
+}
+
+static Decision RejectedWidth(string underlying, WidthEvaluation e)
+{
+    decimal longStrike = e.Spread is null ? 0m : OccSymbol.Strike(e.Spread.LongSymbol) ?? 0m;
+
+    return new Decision
+    {
+        Underlying = underlying,
+        Structure = longStrike > 0m ? $"{longStrike:F0}C/{longStrike + e.Width:F0}C" : $"${e.Width:F0} width",
+        Verdict = Verdict.REJECTED,
+        Gate = GateName(e.Outcome),
+        Finding = e.Detail,
+        Metrics = new DecisionMetrics
+        {
+            LongStrike = longStrike,
+            ShortStrike = longStrike > 0m ? longStrike + e.Width : 0m,
+            Width = e.Width,
+            Debit = Math.Round(e.CrossedDebit, 2),
+            CostDragPercent = Math.Round(e.CostDrag * 100m, 1),
+            RewardRisk = e.Spread is null ? 0m : Math.Round(e.Spread.RewardRiskRatio, 2),
+        },
+    };
+}
+
+static Decision Sized(
+    string underlying, VerticalSpread spread, WidthEvaluation chosen, SizingResult sizing,
+    Account account, decimal longLegDelta)
+{
+    decimal longStrike = OccSymbol.Strike(spread.LongSymbol) ?? 0m;
+    decimal shortStrike = OccSymbol.Strike(spread.ShortSymbol) ?? 0m;
+
+    return new Decision
+    {
+        Underlying = underlying,
+        Structure = $"{longStrike:F0}C/{shortStrike:F0}C",
+        Verdict = sizing.ShouldTrade ? Verdict.TAKEN : Verdict.REJECTED,
+        Gate = sizing.ShouldTrade ? "sized" : sizing.LimitedBy.ToString(),
+        Finding = sizing.ShouldTrade
+            ? $"delta {longLegDelta:F2} · {spread.RewardRiskRatio:F2}:1 · "
+              + $"{Money.Usd(spread.MaxLossPerContract)} max loss · "
+              + $"{Money.Percent(sizing.CapitalAtRisk / account.Equity)} of equity"
+            : sizing.Explanation,
+        Metrics = new DecisionMetrics
+        {
+            LongStrike = longStrike,
+            ShortStrike = shortStrike,
+            Width = spread.StrikeWidth,
+            Delta = Math.Round(longLegDelta, 3),
+            Debit = Math.Round(spread.NetDebit, 2),
+            RewardRisk = Math.Round(spread.RewardRiskRatio, 2),
+            CostDragPercent = Math.Round(chosen.CostDrag * 100m, 1),
+            MaxLossDollars = Math.Round(spread.MaxLossPerContract, 2),
+            Contracts = sizing.Contracts,
+            RiskDollars = Math.Round(sizing.CapitalAtRisk, 2),
+            RiskPercent = account.Equity <= 0m ? 0m
+                : Math.Round(sizing.CapitalAtRisk / account.Equity * 100m, 2),
+        },
+    };
+}
+
+static Decision Barred(
+    string underlying, VerticalSpread spread, SizingResult sizing, decimal delta, Account account, string gate)
+{
+    decimal longStrike = OccSymbol.Strike(spread.LongSymbol) ?? 0m;
+    decimal shortStrike = OccSymbol.Strike(spread.ShortSymbol) ?? 0m;
+
+    return new Decision
+    {
+        Underlying = underlying,
+        Structure = $"{longStrike:F0}C/{shortStrike:F0}C",
+        Verdict = Verdict.SKIPPED,
+        Gate = gate,
+        Finding = $"would size {sizing.Contracts} at {spread.RewardRiskRatio:F2}:1, "
+                + $"but {gate} bars new positions",
+        Metrics = new DecisionMetrics
+        {
+            LongStrike = longStrike,
+            ShortStrike = shortStrike,
+            Width = spread.StrikeWidth,
+            Delta = Math.Round(delta, 3),
+            Debit = Math.Round(spread.NetDebit, 2),
+            RewardRisk = Math.Round(spread.RewardRiskRatio, 2),
+            MaxLossDollars = Math.Round(spread.MaxLossPerContract, 2),
+            Contracts = sizing.Contracts,
+            RiskDollars = Math.Round(sizing.CapitalAtRisk, 2),
+            RiskPercent = account.Equity <= 0m ? 0m
+                : Math.Round(sizing.CapitalAtRisk / account.Equity * 100m, 2),
+        },
+    };
+}
+
+static string GateName(SelectionFailure f) => f switch
+{
+    SelectionFailure.CostDragTooHigh => "cost-drag",
+    SelectionFailure.RewardRiskBelowFloor => "reward-floor",
+    SelectionFailure.LegsTooIlliquid => "liquidity",
+    SelectionFailure.NoShortLegAtWidth => "no-short-leg",
+    SelectionFailure.NoContractsInDeltaBand => "delta-band",
+    SelectionFailure.DebitExceedsWidth => "malformed-spread",
+    _ => "none",
+};

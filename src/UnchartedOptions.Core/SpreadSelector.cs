@@ -60,6 +60,9 @@ public sealed record SpreadCandidate
     /// <summary>Every width considered, for the audit trail.</summary>
     public IReadOnlyList<WidthEvaluation> Evaluations { get; init; } = [];
 
+    /// <summary>Delta of the chosen long leg. Zero when no leg was selected.</summary>
+    public decimal LongLegDelta { get; init; }
+
     public bool Found => Spread is not null;
 }
 
@@ -155,6 +158,7 @@ public static class SpreadSelector
             Spread = spread,
             Failure = SelectionFailure.None,
             Evaluations = evaluations,
+            LongLegDelta = longLeg.Delta,
             Reasoning =
                 $"Long {longLeg.Strike:F0}C (delta {longLeg.Delta:F2}) / short "
                 + $"{longLeg.Strike + chosen.Width:F0}C, {Money.Usd(spread.NetDebit)} debit on a "

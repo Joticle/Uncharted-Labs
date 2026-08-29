@@ -37,6 +37,18 @@ public sealed record AgentConfig
     public decimal StrikeSearchBand { get; init; } = 120m;
 
     /// <summary>
+    /// Earnings dates as <c>SYMBOL:YYYY-MM-DD</c>. Supplied explicitly because Alpaca's
+    /// corporate-actions endpoint does not publish them.
+    /// </summary>
+    public IReadOnlyList<string> EarningsDates { get; init; } = [];
+
+    /// <summary>Trading sessions of clearance required either side of a blackout event.</summary>
+    public int BlackoutSessions { get; init; } = 3;
+
+    /// <summary>Where the decision log is written. Committed by CI, never read back.</summary>
+    public string LogDirectory { get; init; } = "log";
+
+    /// <summary>
     /// Applies <c>--expiry YYYY-MM-DD</c>, <c>--underlying SYM</c> and <c>--widest</c>.
     /// </summary>
     public static AgentConfig FromArgs(IReadOnlyList<string> args)
@@ -59,6 +71,41 @@ public sealed record AgentConfig
             {
                 config = config with { Underlying = args[i + 1].ToUpperInvariant() };
             }
+        }
+
+        for (int i = 0; i < args.Count - 1; i++)
+        {
+            if (string.Equals(args[i], "--earnings", StringComparison.OrdinalIgnoreCase))
+            {
+                config = config with
+                {
+                    EarningsDates = args[i + 1]
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                };
+            }
+
+            if (string.Equals(args[i], "--blackout-sessions", StringComparison.OrdinalIgnoreCase)
+                && int.TryParse(args[i + 1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int sessions))
+            {
+                config = config with { BlackoutSessions = sessions };
+            }
+
+            if (string.Equals(args[i], "--log-dir", StringComparison.OrdinalIgnoreCase))
+            {
+                config = config with { LogDirectory = args[i + 1] };
+            }
+        }
+
+        // Earnings may also arrive from the environment, which is how CI supplies them
+        // without putting dates in the workflow file.
+        string? fromEnv = Environment.GetEnvironmentVariable("UNCHARTED_EARNINGS");
+        if (!string.IsNullOrWhiteSpace(fromEnv))
+        {
+            config = config with
+            {
+                EarningsDates = [.. config.EarningsDates,
+                    .. fromEnv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)],
+            };
         }
 
         if (args.Any(a => string.Equals(a, "--widest", StringComparison.OrdinalIgnoreCase)))
