@@ -1,0 +1,137 @@
+## Uncharted Options - .gitignore
+## Clean-room rebuild. Nothing from any other repository may be committed here.
+
+########################################
+# HARD EXCLUSIONS — reference-only material
+########################################
+
+# Raw files staged from a private repo. Reference only. NEVER commit.
+_extracted/
+**/_extracted/
+
+# Maps a private production codebase (file paths, line numbers, domain model).
+# No secrets, but a reconnaissance document. Reference-only, never published.
+docs/EXTRACTION_MANIFEST.md
+
+########################################
+# Secrets / configuration
+########################################
+.env
+.env.*
+!.env.example
+appsettings.json
+appsettings.*.json
+secrets.json
+**/secrets/
+*.key
+*.pem
+*.pfx
+*.p12
+*.jks
+*.keystore
+*.snk
+*.publishsettings
+*.pubxml
+*.pubxml.user
+*credentials*.json
+*.secret
+*.secrets
+
+########################################
+# Visual Studio / .NET build output
+########################################
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Oo]ut/
+[Ll]og/
+artifacts/
+
+########################################
+# Visual Studio / Rider / VS Code
+########################################
+.vs/
+.vscode/
+!.vscode/extensions.json
+.idea/
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.svclog
+
+########################################
+# NuGet
+########################################
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+
+########################################
+# Test / coverage results
+########################################
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+TestResults/
+.axoCover/
+
+########################################
+# Misc / OS
+########################################
+*.tmp
+*.temp
+*.cache
+*.log
+*.bak
+*.swp
+~$*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+########################################
+# Alpaca CLI credentials / profiles
+########################################
+alpaca-profile*
+.alpaca/
+.config/alpaca/
+
+########################################
+# Local run config that carries env vars
+########################################
+**/Properties/launchSettings.json
+
+########################################
+# Local state stores
+########################################
+*.db
+*.sqlite
+*.sqlite3

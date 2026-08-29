@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/UnchartedOptions.Agent/UnchartedOptions.Agent.csproj" />
+    <Project Path="src/UnchartedOptions.Alpaca/UnchartedOptions.Alpaca.csproj" />
+    <Project Path="src/UnchartedOptions.Core/UnchartedOptions.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/UnchartedOptions.Tests/UnchartedOptions.Tests.csproj" />
+  </Folder>
+</Solution>
