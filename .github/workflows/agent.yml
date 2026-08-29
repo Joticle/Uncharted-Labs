@@ -73,16 +73,23 @@ jobs:
           # bare subcommand needs no credentials and prints a plain version string.
           #
           # Do not "fix" this back to --version.
-          installed="$(alpaca version | tr -d '[:space:]')"
-          expected="v${CLI_VERSION}"
+          raw="$(alpaca version | tr -d '[:space:]')"
+
+          # The release artifact reports "0.0.13"; a `go install` build of the same tag
+          # reports "v0.0.13". goreleaser's .Version strips the leading v from the tag, while
+          # go install falls back to debug.ReadBuildInfo() which keeps it. Same source --
+          # the two builds were compared and produce byte-identical multi-leg order bodies --
+          # so the prefix is normalised away rather than treated as a mismatch.
+          installed="${raw#v}"
+          expected="${CLI_VERSION#v}"
 
           if [ "$installed" != "$expected" ]; then
-            echo "::error::Alpaca CLI is $installed, expected $expected. The wire format is"
-            echo "::error::pinned to $expected and verified against it; refusing to run."
+            echo "::error::Alpaca CLI is $raw, expected $expected. The multi-leg wire format"
+            echo "::error::is pinned to $expected and verified against it; refusing to run."
             exit 1
           fi
 
-          echo "Alpaca CLI $installed"
+          echo "Alpaca CLI $raw (normalised to $installed, pin satisfied)"
 
       - name: Authenticate
         env:
