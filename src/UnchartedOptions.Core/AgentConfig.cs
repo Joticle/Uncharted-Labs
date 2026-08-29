@@ -42,6 +42,22 @@ public sealed record AgentConfig
     /// </summary>
     public IReadOnlyList<string> EarningsDates { get; init; } = [];
 
+    /// <summary>
+    /// Simulated wall-clock, for rehearsing contest timing against the dev account.
+    /// </summary>
+    /// <remarks>
+    /// The contest calendar only applies to the judged account, which means the flatten,
+    /// entry-cutoff and hold-to-expiry rules would otherwise go unexercised until the day
+    /// they matter. Setting this applies the calendar to the dev account at a chosen instant
+    /// so those transitions can be watched firing.
+    /// <para>
+    /// Refused outright on the competition profile. A simulated clock is a rehearsal tool;
+    /// pointing one at the judged account would be a way to talk the guard out of its own
+    /// timing, which is the one thing it exists to prevent.
+    /// </para>
+    /// </remarks>
+    public DateTimeOffset? SimulatedNow { get; init; }
+
     /// <summary>Trading sessions of clearance required either side of a blackout event.</summary>
     public int BlackoutSessions { get; init; } = 3;
 
@@ -100,6 +116,14 @@ public sealed record AgentConfig
             if (string.Equals(args[i], "--log-dir", StringComparison.OrdinalIgnoreCase))
             {
                 config = config with { LogDirectory = args[i + 1] };
+            }
+
+            if (string.Equals(args[i], "--as-of", StringComparison.OrdinalIgnoreCase)
+                && DateTimeOffset.TryParse(args[i + 1], CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                    out DateTimeOffset simulated))
+            {
+                config = config with { SimulatedNow = simulated };
             }
         }
 
