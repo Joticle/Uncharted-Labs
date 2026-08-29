@@ -1,0 +1,167 @@
+name: Trading Agent
+
+# Runs one evaluation cycle per invocation. The agent is single-shot and holds no state
+# between runs, so a cron schedule and a manual dispatch are interchangeable.
+#
+# Safety: the competition account cannot be traded before the opening bell. That guard lives
+# in the agent itself (Program.cs refuses --comp --live outside the competition window and
+# exits 2) and there is no flag, input or environment variable in this workflow that can
+# bypass it. The workflow can only choose which account to point at, never whether the guard
+# applies.
+
+on:
+  schedule:
+    # US market hours are 13:30-20:00 UTC. Four passes through the session, offset five
+    # minutes past the hour so the open has settled and quotes are two-sided.
+    - cron: '35 13,15,17,19 * * 1-5'
+
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Which account to target'
+        required: true
+        default: 'dev'
+        type: choice
+        options: [dev, comp]
+      live:
+        description: 'Place real orders (unchecked = dry run)'
+        required: false
+        default: false
+        type: boolean
+      expiry:
+        description: 'Target expiry, YYYY-MM-DD (blank = default)'
+        required: false
+        type: string
+
+permissions:
+  contents: write        # only to commit the decision log back
+
+concurrency:
+  # Never let two cycles evaluate the same account at once: the second would read positions
+  # the first has not finished creating and could size against stale exposure.
+  group: trading-agent-${{ github.event.inputs.profile || 'dev' }}
+  cancel-in-progress: false
+
+jobs:
+  cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Alpaca CLI (pinned)
+        env:
+          CLI_VERSION: '0.0.13'
+        run: |
+          set -euo pipefail
+          url="https://github.com/alpacahq/cli/releases/download/v${CLI_VERSION}/cli_${CLI_VERSION}_linux_amd64.tar.gz"
+          curl -fsSL "$url" -o alpaca.tar.gz
+          tar -xzf alpaca.tar.gz
+          sudo install -m 0755 alpaca /usr/local/bin/alpaca
+          rm -f alpaca.tar.gz alpaca
+          alpaca --version
+
+      - name: Authenticate
+        env:
+          # Repository secrets. Never written to a file in the workspace, never committed.
+          # The CLI stores its profile under the runner's home directory, which is discarded
+          # when the job ends.
+          DEV_KEY: ${{ secrets.ALPACA_DEV_KEY }}
+          DEV_SECRET: ${{ secrets.ALPACA_DEV_SECRET }}
+          COMP_KEY: ${{ secrets.ALPACA_COMP_KEY }}
+          COMP_SECRET: ${{ secrets.ALPACA_COMP_SECRET }}
+          TARGET: ${{ github.event.inputs.profile || 'dev' }}
+        run: |
+          set -euo pipefail
+
+          if [ "$TARGET" = "comp" ]; then
+            key="$COMP_KEY"; secret="$COMP_SECRET"; name="comp"
+          else
+            key="$DEV_KEY"; secret="$DEV_SECRET"; name="paper"
+          fi
+
+          if [ -z "$key" ] || [ -z "$secret" ]; then
+            echo "::error::Missing credentials for profile '$TARGET'. Set the repository secrets."
+            exit 1
+          fi
+
+          alpaca profile login --api-key --key "$key" --secret "$secret" --name "$name" --paper
+          echo "authenticated profile: $name"
+
+      - name: Verify the account is the one we expect
+        env:
+          TARGET: ${{ github.event.inputs.profile || 'dev' }}
+        run: |
+          set -euo pipefail
+          args="--verify"
+          [ "$TARGET" = "comp" ] && args="$args --comp"
+          dotnet run --project src/UnchartedOptions.Agent --configuration Release -- $args
+
+      - name: Run one evaluation cycle
+        env:
+          TARGET: ${{ github.event.inputs.profile || 'dev' }}
+          LIVE: ${{ github.event.inputs.live }}
+          EXPIRY: ${{ github.event.inputs.expiry }}
+          # Earnings dates are not published by Alpaca and are supplied here.
+          UNCHARTED_EARNINGS: ${{ vars.UNCHARTED_EARNINGS }}
+        run: |
+          set -euo pipefail
+          args=""
+          [ "$TARGET" = "comp" ] && args="$args --comp"
+          [ "$LIVE" = "true" ] && args="$args --live"
+          [ -n "$EXPIRY" ] && args="$args --expiry $EXPIRY"
+
+          echo "running: dotnet run -- $args"
+
+          # Exit 2 is the competition-window guard refusing to trade the judged account
+          # outside the contest. That is correct behaviour, not a failure, so the job
+          # records it and moves on rather than going red.
+          set +e
+          dotnet run --project src/UnchartedOptions.Agent --configuration Release -- $args
+          code=$?
+          set -e
+
+          case $code in
+            0) echo "cycle complete" ;;
+            2) echo "::notice::Refused by the competition-window guard. Nothing was traded." ;;
+            3) echo "::warning::Not ready to trade -- see the preflight output above." ;;
+            5) echo "::error::Configuration error in the blackout list."; exit 1 ;;
+            *) echo "::error::Agent failed with exit $code"; exit $code ;;
+          esac
+
+      - name: Commit the decision log
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain decisions/ 2>/dev/null)" ]; then
+            echo "no new decisions to record"
+            exit 0
+          fi
+
+          git config user.name  "uncharted-agent"
+          git config user.email "agent@users.noreply.github.com"
+          git add decisions/
+          git commit -m "Decision log: $(date -u +%Y-%m-%dT%H:%MZ) cycle"
+
+          # Another cycle may have committed while this one ran.
+          for attempt in 1 2 3; do
+            if git push; then exit 0; fi
+            echo "push rejected, rebasing (attempt $attempt)"
+            git pull --rebase --autostash
+          done
+
+          echo "::error::Could not push the decision log after three attempts"
+          exit 1
+
+      - name: Upload the run as an artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: decisions-${{ github.run_id }}
+          path: decisions/
+          if-no-files-found: ignore
+          retention-days: 14
