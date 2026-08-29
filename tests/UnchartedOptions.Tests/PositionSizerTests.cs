@@ -104,7 +104,7 @@ public class PositionSizerTests
     [Fact]
     public void The_7_rejects_a_spread_whose_payoff_does_not_justify_the_debit()
     {
-        // $4.00 debit on a $5.00 width is 0.25:1. Nowhere near a 7:1 floor.
+        // $4.00 debit on a $5.00 width is 0.25:1 -- the debit is not worth the payoff.
         SizingResult result = PositionSizer.Size(new SizingRequest
         {
             Account = MarginAccount(),
@@ -126,7 +126,7 @@ public class PositionSizerTests
     /// the agent decline nearly every candidate and finish the competition flat.
     /// </remarks>
     [Fact]
-    public void A_seven_to_one_vertical_requires_a_debit_of_one_eighth_the_width()
+    public void A_seven_to_one_vertical_would_require_a_debit_of_one_eighth_the_width()
     {
         VerticalSpread cheap = Spread(debit: 0.625m, width: 5.00m);
         Assert.Equal(7.0m, cheap.RewardRiskRatio);

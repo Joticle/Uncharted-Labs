@@ -97,7 +97,7 @@ public sealed record VerticalSpread
     public decimal MaxProfitPerContract => (StrikeWidth - NetDebit) * ContractMultiplier;
 
     /// <summary>
-    /// Reward-to-risk ratio at maximum profit. Compared against the 7 gate.
+    /// Reward-to-risk ratio at maximum profit. Compared against the entry floor.
     /// </summary>
     public decimal RewardRiskRatio =>
         MaxLossPerContract <= 0m ? 0m : MaxProfitPerContract / MaxLossPerContract;

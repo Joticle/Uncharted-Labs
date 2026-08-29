@@ -40,7 +40,7 @@ profitable; it's that the losses concentrate in behaviours a gated agent does no
 ## Architecture
 
 ```
-src/UnchartedOptions.Core     domain: account, spreads, the 3-5-7 gates, chain selection
+src/UnchartedOptions.Core     domain: account, spreads, the 3-5 gates, chain selection
 src/UnchartedOptions.Alpaca   CLI adapter: account, clock, chains, multi-leg orders
 src/UnchartedOptions.Agent    single-shot entrypoint — one evaluation cycle, then exit
 tests/UnchartedOptions.Tests  the mandate, exhaustively

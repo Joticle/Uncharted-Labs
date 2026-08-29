@@ -15,7 +15,7 @@ public enum LimitingFactor
     /// <summary>Options buying power could not cover the debit.</summary>
     Affordability,
 
-    /// <summary>The 7. Reward-to-risk was too poor to justify the trade at any size.</summary>
+    /// <summary>Reward-to-risk was too poor to justify the debit at any size.</summary>
     RewardRiskRatio,
 
     /// <summary>A single spread already breaches a gate. No tradeable size exists.</summary>
@@ -35,14 +35,16 @@ public sealed record RiskMandate
     public decimal MaxSymbolExposurePct { get; init; } = 0.05m;
 
     /// <summary>
-    /// The 7. Minimum reward-to-risk ratio required to open at all.
+    /// Minimum reward-to-risk ratio required to open at all.
     /// </summary>
     /// <remarks>
-    /// Inherited from the predecessor as 7.0, which was wrong for this instrument. A debit
-    /// vertical's payoff is structurally capped at <c>width - debit</c>, so 7:1 requires
-    /// paying an eighth of the width -- a far-OTM, low-probability spread. That figure came
-    /// from a share-based strategy with unbounded upside. The market research characterises
-    /// this product as "a 1.5:1 payoff with a 3% cap", so 1.5 is the researched figure.
+    /// Deliberately not part of the doctrine, which is the 3 and the 5. The parent equity
+    /// strategy carried a 7:1 reward target, and that constraint is meaningful in equities
+    /// where such asymmetry is rare. It does not translate to options: a vertical's payoff
+    /// is structurally capped at <c>width - debit</c>, so a spread paying 7:1 is priced at
+    /// roughly a 12% chance of paying. Forcing the ratio buys low-probability structure
+    /// rather than edge. What replaces it is liquid 35-45 delta strike selection, and this
+    /// floor exists only to reject spreads whose debit is not worth their payoff at all.
     /// </remarks>
     public decimal MinRewardRiskRatio { get; init; } = 1.5m;
 
@@ -125,7 +127,7 @@ public sealed record SizingResult
 }
 
 /// <summary>
-/// The 3-5-7 gates, applied to defined-risk verticals.
+/// The 3-5 doctrine, applied to defined-risk verticals.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -166,7 +168,7 @@ public static class PositionSizer
                 "Spread has no defined risk (net debit is zero or negative); refusing to size it.");
         }
 
-        // The 7 -- reward-to-risk. A structural property of the spread, so it gates
+        // Reward-to-risk floor. A structural property of the spread, so it gates
         // entry outright rather than scaling the size.
         if (spread.RewardRiskRatio < mandate.MinRewardRiskRatio)
         {
@@ -242,7 +244,7 @@ public static class PositionSizer
     {
         LimitingFactor.RiskPerTrade => "the 3 (risk per trade)",
         LimitingFactor.SymbolExposure => "the 5 (symbol exposure)",
-        LimitingFactor.RewardRiskRatio => "the 7 (reward:risk)",
+        LimitingFactor.RewardRiskRatio => "the reward:risk floor",
         LimitingFactor.Affordability => "options buying power",
         LimitingFactor.BelowMinimumSize => "minimum size",
         LimitingFactor.OrderCeiling => "the per-order contract ceiling",
