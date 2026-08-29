@@ -64,7 +64,25 @@ jobs:
           tar -xzf alpaca.tar.gz
           sudo install -m 0755 alpaca /usr/local/bin/alpaca
           rm -f alpaca.tar.gz alpaca
-          alpaca --version
+
+          # `alpaca version` (no dashes), NOT `alpaca --version`.
+          #
+          # The dashed flag routes through the authenticated command path and fails with
+          # {"error": "authentication required"} on a runner that has not logged in yet --
+          # which is every runner at this point, since Authenticate is the next step. The
+          # bare subcommand needs no credentials and prints a plain version string.
+          #
+          # Do not "fix" this back to --version.
+          installed="$(alpaca version | tr -d '[:space:]')"
+          expected="v${CLI_VERSION}"
+
+          if [ "$installed" != "$expected" ]; then
+            echo "::error::Alpaca CLI is $installed, expected $expected. The wire format is"
+            echo "::error::pinned to $expected and verified against it; refusing to run."
+            exit 1
+          fi
+
+          echo "Alpaca CLI $installed"
 
       - name: Authenticate
         env:
@@ -99,7 +117,7 @@ jobs:
         run: |
           set -euo pipefail
           args="--verify"
-          [ "$TARGET" = "comp" ] && args="$args --comp"
+          if [ "$TARGET" = "comp" ]; then args="$args --comp"; fi
           dotnet run --project src/UnchartedOptions.Agent --configuration Release -- $args
 
       - name: Run one evaluation cycle
@@ -111,10 +129,13 @@ jobs:
           UNCHARTED_EARNINGS: ${{ vars.UNCHARTED_EARNINGS }}
         run: |
           set -euo pipefail
+
+          # if-blocks rather than `[ cond ] && assign`: the latter returns 1 when the
+          # condition is false, which under set -e terminates the step if it lands last.
           args=""
-          [ "$TARGET" = "comp" ] && args="$args --comp"
-          [ "$LIVE" = "true" ] && args="$args --live"
-          [ -n "$EXPIRY" ] && args="$args --expiry $EXPIRY"
+          if [ "$TARGET" = "comp" ]; then args="$args --comp"; fi
+          if [ "$LIVE" = "true" ]; then args="$args --live"; fi
+          if [ -n "$EXPIRY" ]; then args="$args --expiry $EXPIRY"; fi
 
           echo "running: dotnet run -- $args"
 
@@ -135,6 +156,8 @@ jobs:
           esac
 
       - name: Commit the decision log
+        env:
+          BRANCH: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           if [ -z "$(git status --porcelain decisions/ 2>/dev/null)" ]; then
@@ -147,11 +170,13 @@ jobs:
           git add decisions/
           git commit -m "Decision log: $(date -u +%Y-%m-%dT%H:%MZ) cycle"
 
-          # Another cycle may have committed while this one ran.
+          # Another cycle may have committed while this one ran. Push by explicit refspec:
+          # checkout does not always leave a branch with an upstream configured.
           for attempt in 1 2 3; do
-            if git push; then exit 0; fi
+            if git push origin "HEAD:$BRANCH"; then exit 0; fi
             echo "push rejected, rebasing (attempt $attempt)"
-            git pull --rebase --autostash
+            git fetch origin "$BRANCH"
+            git rebase --autostash "origin/$BRANCH"
           done
 
           echo "::error::Could not push the decision log after three attempts"
