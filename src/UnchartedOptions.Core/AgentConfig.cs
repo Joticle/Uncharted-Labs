@@ -45,8 +45,15 @@ public sealed record AgentConfig
     /// <summary>Trading sessions of clearance required either side of a blackout event.</summary>
     public int BlackoutSessions { get; init; } = 3;
 
-    /// <summary>Where the decision log is written. Committed by CI, never read back.</summary>
-    public string LogDirectory { get; init; } = "log";
+    /// <summary>
+    /// Where the decision log is written. Committed by CI, never read back.
+    /// </summary>
+    /// <remarks>
+    /// Deliberately not <c>log/</c>. The standard .NET gitignore excludes <c>[Ll]og/</c> as
+    /// build output, which would silently prevent the record from ever being committed --
+    /// the log would appear to work locally and produce nothing in CI.
+    /// </remarks>
+    public string LogDirectory { get; init; } = "decisions";
 
     /// <summary>
     /// Applies <c>--expiry YYYY-MM-DD</c>, <c>--underlying SYM</c> and <c>--widest</c>.
