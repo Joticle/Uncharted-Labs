@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-08-30T05:51:33Z",
+  "generatedAt": "2026-08-30T17:44:55Z",
   "day": "Pre-open",
-  "clock": "01:51 ET | 08.30.26",
+  "clock": "13:44 ET | 08.30.26",
   "dryRun": true,
   "account": "PA3ILISQPBT4",
   "equity": 100000,
   "positions": [],
   "rejections": [
     {
-      "t": "01:51",
+      "t": "13:44",
       "cand": "SPY $10 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
@@ -16,7 +16,7 @@
       "executed": false
     },
     {
-      "t": "01:51",
+      "t": "13:44",
       "cand": "SPY $15 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
@@ -24,7 +24,7 @@
       "executed": false
     },
     {
-      "t": "01:51",
+      "t": "13:44",
       "cand": "SPY 772C/777C",
       "verdict": "TAKEN",
       "gate": "sized",
