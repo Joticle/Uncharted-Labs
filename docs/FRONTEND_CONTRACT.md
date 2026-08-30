@@ -81,7 +81,7 @@ currently held** — see the empty state below.
 {
   "underlying": "SPY",            // string, always present and non-empty
   "structure": "772C/777C",       // string — may be EMPTY, see below
-  "verdict": "TAKEN",             // "TAKEN" | "REJECTED" | "SKIPPED"
+  "verdict": "TAKEN",             // see the verdict table below
   "gate": "sized",                // string, see the gate list
   "finding": "delta 0.39 | 2.09:1 | $162.00 max loss | 1.62% of equity",
   "metrics": { DecisionMetrics }
