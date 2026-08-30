@@ -63,6 +63,21 @@ public sealed record Decision
     /// <summary>The finding, with its numbers in it.</summary>
     [JsonPropertyName("finding")] public required string Finding { get; init; }
 
+    /// <summary>
+    /// Whether the broker actually created an order for this decision.
+    /// </summary>
+    /// <remarks>
+    /// Set from the returned order id and from nothing else. A verdict of TAKEN or CLOSED
+    /// means the mandate reached that conclusion; it does not mean an order exists. In a dry
+    /// run the broker validates and creates nothing, so a log that reported those as executed
+    /// would be asserting a position that cannot be found in the account -- an unverifiable
+    /// claim, in the one artifact whose purpose is to show this agent does not make them.
+    /// </remarks>
+    [JsonPropertyName("executed")] public bool Executed { get; init; }
+
+    /// <summary>Broker order id when one was created. Empty otherwise, never null.</summary>
+    [JsonPropertyName("orderId")] public string OrderId { get; init; } = string.Empty;
+
     [JsonPropertyName("metrics")] public DecisionMetrics Metrics { get; init; } = new();
 
     /// <summary>Renders the line the dashboard shows.</summary>
@@ -94,6 +109,11 @@ public sealed record LogRun
     [JsonPropertyName("profile")] public required string Profile { get; init; }
     [JsonPropertyName("isCompetition")] public required bool IsCompetition { get; init; }
     [JsonPropertyName("marketOpen")] public required bool MarketOpen { get; init; }
+
+    /// <summary>
+    /// True when the run placed no orders. Every decision in a dry run has executed=false.
+    /// </summary>
+    [JsonPropertyName("dryRun")] public required bool DryRun { get; init; }
     [JsonPropertyName("equity")] public required decimal Equity { get; init; }
     [JsonPropertyName("calendarState")] public required string CalendarState { get; init; }
     [JsonPropertyName("riskPerTrade")] public required GateUtilisation RiskPerTrade { get; init; }

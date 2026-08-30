@@ -28,6 +28,7 @@ Runs are appended in chronological order. Sort by `timestamp` if you need certai
   "profile": "paper",                   // string: "paper" (dev) | "comp" (judged)
   "isCompetition": false,               // boolean — use this, not the profile name
   "marketOpen": false,                  // boolean
+  "dryRun": true,                       // boolean — see "Dry runs" below
   "equity": 100000,                     // number, USD
   "calendarState": "OpenAndManage",     // string enum, see below
   "riskPerTrade":  { GateUtilisation },
@@ -84,9 +85,46 @@ currently held** — see the empty state below.
   "verdict": "TAKEN",             // see the verdict table below
   "gate": "sized",                // string, see the gate list
   "finding": "delta 0.39 | 2.09:1 | $162.00 max loss | 1.62% of equity",
+  "executed": false,              // boolean — READ THIS BEFORE RENDERING A POSITION
+  "orderId": "",                  // string, empty unless executed. Never null
   "metrics": { DecisionMetrics }
 }
 ```
+
+### `executed` — the field that stops the dashboard lying
+
+**A verdict says what the mandate concluded. It does not say an order exists.**
+
+`TAKEN` means the gates approved the spread and it was submitted for execution. In a dry run
+the broker validates the order and creates nothing, so the verdict is still `TAKEN` and
+`executed` is `false`. The same applies to `CLOSED`: the ladder decided to unwind, but no
+closing order was sent.
+
+`executed` is set from the broker's returned order id and from nothing else. No id, no
+`executed` — it is never inferred from the verdict, from `dryRun`, or from anything else.
+
+**Check it before rendering anything as a position.** A `TAKEN` row shown beside an empty
+position list is a claim a reader cannot verify against the account, and one such row
+undermines every gate row next to it.
+
+| `verdict` | `executed` | Render as |
+|---|---|---|
+| `TAKEN` | `true` | A position. `orderId` is lookup-able in the account |
+| `TAKEN` | `false` | *Would take* — approved, not placed |
+| `CLOSED` | `true` | An unwind that happened |
+| `CLOSED` | `false` | *Would close* — the ladder fired, no order sent |
+| anything else | always `false` | Nothing was ever submitted |
+
+### Dry runs
+
+`dryRun: true` on the run object means **no orders were placed in that cycle**, and every
+decision in it has `executed: false`. It is the default mode; the agent places orders only
+when explicitly told to.
+
+A dry run is not a simulation. The account, chain, quotes, greeks, sizing and gate decisions
+are all real and live — the only thing that does not happen is order creation. So the
+refusals in a dry run are exactly the refusals that would have occurred, which is why they are
+worth rendering. Only the positions are hypothetical.
 
 ### `verdict`
 
@@ -244,8 +282,12 @@ self-describing keys, this uses the dashboard's own vocabulary.
 }
 ```
 
-**`FeedRejection`** — `{ t, cand, verdict, gate, reason }`. `t` is `HH:MM` Eastern. `cand` is
-`"SPY 772C/777C"` or just the ticker when no spread formed. Same five verdicts as the log.
+**`FeedRejection`** — `{ t, cand, verdict, gate, reason, executed }`. `t` is `HH:MM` Eastern.
+`cand` is `"SPY 772C/777C"` or just the ticker when no spread formed. Same five verdicts as the
+log, and `executed` carries the same meaning and the same warning: do not render a row as a
+position without it.
+
+The feed object also carries `dryRun`, mirroring the run object.
 
 **`FeedPosition`** — `{ sym, title, kind, qty, legs, dte, open, n, mlPer, maxLoss, maxLossPct,
 metrics[] }`. `metrics` is an array of `{ k, v }` where `v` is already formatted for display.

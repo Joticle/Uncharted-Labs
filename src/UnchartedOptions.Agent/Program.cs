@@ -204,7 +204,9 @@ try
 
         // Exits are decisions. Recording only entries would leave the ladder's work
         // invisible in the one artifact that exists to show what the agent decided.
-        decisions.Add(ExitTaken(held, decision, account.Equity));
+        Decision exitRecord = ExitTaken(held, decision, account.Equity);
+        int exitIndex = decisions.Count;
+        decisions.Add(exitRecord);
 
 
 
@@ -515,6 +517,7 @@ try
         IsCompetition = profile.IsCompetition,
 
         MarketOpen = clock.IsOpen,
+        DryRun = !live,
 
         Equity = Math.Round(account.Equity, 2),
 
