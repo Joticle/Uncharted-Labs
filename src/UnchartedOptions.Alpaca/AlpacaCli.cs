@@ -75,7 +75,11 @@ public sealed class AlpacaCli
         ArgumentException.ThrowIfNullOrWhiteSpace(symbol);
 
         using JsonDocument doc = await _runner
-            .RunAsync(["data", "latest-quote", "--symbol", symbol], ct)
+            // --feed iex, explicitly. A paper account has no SIP entitlement: asking for it
+            // returns "subscription does not permit querying recent SIP data" outright. The
+            // server default resolves to iex today, but relying on that makes the underlying
+            // price a function of Alpaca's default rather than of what this account may read.
+            .RunAsync(["data", "latest-quote", "--symbol", symbol, "--feed", "iex"], ct)
             .ConfigureAwait(false);
 
         if (!doc.RootElement.TryGetProperty("quote", out JsonElement quote))
