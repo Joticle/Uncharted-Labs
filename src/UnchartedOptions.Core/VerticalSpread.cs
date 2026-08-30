@@ -18,14 +18,18 @@ public enum PositionIntent
     SellToClose,
 }
 
-/// <summary>Directional bias of a defined-risk vertical.</summary>
+/// <summary>
+/// Structure of a defined-risk vertical.
+/// </summary>
+/// <remarks>
+/// One member, deliberately. A bear put variant would be a straightforward addition, but
+/// nothing constructs one today and an enum member the selector can never produce advertises
+/// a capability that does not exist. It gets added when the code to build it does.
+/// </remarks>
 public enum SpreadDirection
 {
     /// <summary>Bull call debit spread. Long the lower strike, short the higher.</summary>
     BullCall,
-
-    /// <summary>Bear put debit spread. Long the higher strike, short the lower.</summary>
-    BearPut,
 }
 
 /// <summary>One leg of a multi-leg order, in the exact shape Alpaca's CLI expects.</summary>

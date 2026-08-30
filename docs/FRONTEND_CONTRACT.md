@@ -95,6 +95,12 @@ currently held** — see the empty state below.
 | `TAKEN` | Position opened | Positive / accent |
 | `REJECTED` | A spread was constructed and a gate declined it | Neutral, **not** an error |
 | `SKIPPED` | Never evaluated — blacked out, or outside the trading window | Muted |
+| `CLOSED` | An open position was unwound by the exit ladder | Positive / accent |
+| `HELD` | An open position was evaluated and left alone | Muted |
+
+`CLOSED` and `HELD` appear only when positions exist. On `CLOSED` and `HELD` the `gate` field
+carries the exit stage — `PinRisk`, `StopLoss`, `TakeProfit`, `TimeStop`, `CompetitionFlatten`
+or `None` — rather than an entry gate.
 
 **`REJECTED` is the hero content, not a failure.** It is the evidence the mandate is enforced.
 Do not style it as an error state.
@@ -190,8 +196,10 @@ run yet"*, distinct from an empty result.
 
 ### Zero P&L
 
-The log carries **no P&L or position-value fields**. It records decisions, not performance.
-Position values and P&L come from Alpaca directly and are not in this contract.
+`decisions/latest.json` carries **no P&L or position-value fields**. It records decisions, not
+performance.
+
+Performance lives in a third file, **`decisions/dashboard.json`**, written by the same run.
 
 ---
 
@@ -209,3 +217,51 @@ Position values and P&L come from Alpaca directly and are not in this contract.
 Six real cycles are committed at `decisions/decisions.jsonl` in the repository, covering
 5 `TAKEN`, 5 `REJECTED` and 2 `SKIPPED` across two underlyings and three expiries, with one
 blackout in force. Build against that file rather than against invented data.
+
+
+---
+
+## `decisions/dashboard.json`
+
+A view model for the dashboard, written each cycle beside the log. Where the log uses stable
+self-describing keys, this uses the dashboard's own vocabulary.
+
+```jsonc
+{
+  "generatedAt": "2026-08-30T05:12:44Z",   // ISO-8601 UTC
+  "day": "Pre-open",                        // "Pre-open" | "Day N of 4" | "Closed"
+  "clock": "01:12 ET | 08.30.26",           // ASCII only
+  "account": "PA3ILISQPBT4",
+  "equity": 100000,
+  "positions": [ FeedPosition ],
+  "rejections": [ FeedRejection ],
+  "closed":    [ FeedClosed ],
+  "preGate": 58,        // contracts examined before any gate ran
+  "wins": 0, "losses": 0,
+  "curve": [ 100000, 100000 ],   // account equity, oldest first
+  "curveFrom": "Inception 08.31", "curveTo": "08.30", "curveLabel": "Account equity",
+  "riskDeployed": 0, "riskCeiling": 3000.00
+}
+```
+
+**`FeedRejection`** — `{ t, cand, verdict, gate, reason }`. `t` is `HH:MM` Eastern. `cand` is
+`"SPY 772C/777C"` or just the ticker when no spread formed. Same five verdicts as the log.
+
+**`FeedPosition`** — `{ sym, title, kind, qty, legs, dte, open, n, mlPer, maxLoss, maxLossPct,
+metrics[] }`. `metrics` is an array of `{ k, v }` where `v` is already formatted for display.
+
+**`FeedClosed`** — `{ sym, title, reason, pnl, win }`. `pnl` is realised dollars, negative for a
+loss. `reason` states what the broker can attest to — when it closed and over how many fills.
+The *why* (which exit stage fired) is recorded live in the decision stream as a `CLOSED` entry
+at the moment it happened; it is not inferred backwards from fills.
+
+### How `closed`, `wins` and `losses` are derived
+
+Alpaca publishes no realised-profit figure per trade. These are computed from execution fills:
+signed cash is summed across every fill touching a spread, grouped by underlying and expiry,
+and a spread counts as closed only once **every individual leg** has netted back to zero. A
+vertical's legs carry opposite signs from the moment it opens, so netting the group as a whole
+would report every open spread as closed the instant it was created.
+
+An open or partially unwound spread therefore contributes nothing to `closed`, and no position
+is counted as a loss merely because its opening debit has been paid.

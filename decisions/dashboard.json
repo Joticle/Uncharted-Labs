@@ -1,0 +1,47 @@
+{
+  "generatedAt": "2026-08-30T05:12:26Z",
+  "day": "Pre-open",
+  "clock": "01:12 ET | 08.30.26",
+  "account": "PA3ILISQPBT4",
+  "equity": 100000,
+  "positions": [],
+  "rejections": [
+    {
+      "t": "01:12",
+      "cand": "SPY $10 width",
+      "verdict": "REJECTED",
+      "gate": "liquidity",
+      "reason": "782C quote 10.5 % wide"
+    },
+    {
+      "t": "01:12",
+      "cand": "SPY $15 width",
+      "verdict": "REJECTED",
+      "gate": "liquidity",
+      "reason": "787C quote 18.2 % wide"
+    },
+    {
+      "t": "01:12",
+      "cand": "SPY 772C/777C",
+      "verdict": "TAKEN",
+      "gate": "sized",
+      "reason": "delta 0.39 | 2.09:1 | $162.00 max loss | 1.62% of equity"
+    }
+  ],
+  "closed": [],
+  "preGate": 58,
+  "wins": 0,
+  "losses": 0,
+  "curve": [
+    100000,
+    100000,
+    100000,
+    100000,
+    100000
+  ],
+  "curveFrom": "Inception 08.31",
+  "curveTo": "08.30",
+  "curveLabel": "Account equity",
+  "riskDeployed": 0,
+  "riskCeiling": 3000.00
+}

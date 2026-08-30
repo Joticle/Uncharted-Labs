@@ -15,6 +15,12 @@ public enum Verdict
 
     /// <summary>Not evaluated at all -- blacked out, or outside the trading window.</summary>
     SKIPPED,
+
+    /// <summary>An open position was unwound by the exit ladder.</summary>
+    CLOSED,
+
+    /// <summary>An open position was evaluated by the ladder and left alone.</summary>
+    HELD,
 }
 
 /// <summary>

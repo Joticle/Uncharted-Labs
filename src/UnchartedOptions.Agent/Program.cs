@@ -94,6 +94,8 @@ ChainReader chains = new(runner);
 PositionReader positions = new(runner);
 
 CorporateActionsReader corporateActions = new(runner);
+PortfolioReader portfolio = new(runner);
+ActivityReader activity = new(runner);
 
 
 
@@ -199,6 +201,10 @@ try
         ExitDecision decision = ExitLadder.Evaluate(held, exitPolicy, spot, now, activeCalendar);
 
         Console.WriteLine($"Manage       {held.Spread.Underlying} x{held.Contracts}: {decision.Reason} -- {decision.Explanation}");
+
+        // Exits are decisions. Recording only entries would leave the ladder's work
+        // invisible in the one artifact that exists to show what the agent decided.
+        decisions.Add(ExitTaken(held, decision, account.Equity));
 
 
 
@@ -540,6 +546,15 @@ try
 
     DecisionLog.Append(config.LogDirectory, logRun);
 
+    // The dashboard needs more than the decision log carries -- position marks, an equity
+    // curve, realised outcomes. The log stays a record of decisions; this is the view model
+    // that spans both, written alongside it.
+    IReadOnlyList<RealisedTrade> realised = RealisedTrades.FromFills(await activity.GetFillsAsync());
+
+    DashboardFeedBuilder.Write(config.LogDirectory, DashboardFeedBuilder.Build(
+        logRun, heldSpreads, await portfolio.GetEquityCurveAsync(), realised,
+        chain.Count, calendar, now));
+
     Console.WriteLine();
 
     Console.WriteLine($"Logged {decisions.Count} decision(s) to {config.LogDirectory}/decisions.jsonl");
@@ -791,6 +806,34 @@ static Decision Barred(
 }
 
 
+
+static Decision ExitTaken(SpreadPosition held, ExitDecision decision, decimal equity)
+{
+    decimal longStrike = OccSymbol.Strike(held.Spread.LongSymbol) ?? 0m;
+    decimal shortStrike = OccSymbol.Strike(held.Spread.ShortSymbol) ?? 0m;
+    decimal atRisk = held.Spread.MaxLoss(held.Contracts);
+
+    return new Decision
+    {
+        Underlying = held.Spread.Underlying,
+        Structure = $"{longStrike:F0}C/{shortStrike:F0}C",
+        Verdict = decision.ShouldClose ? Verdict.CLOSED : Verdict.HELD,
+        Gate = decision.Reason.ToString(),
+        Finding = decision.Explanation,
+        Metrics = new DecisionMetrics
+        {
+            LongStrike = longStrike,
+            ShortStrike = shortStrike,
+            Width = held.Spread.StrikeWidth,
+            Debit = Math.Round(held.DebitPaid, 2),
+            RewardRisk = Math.Round(held.Spread.RewardRiskRatio, 2),
+            MaxLossDollars = Math.Round(held.Spread.MaxLossPerContract, 2),
+            Contracts = held.Contracts,
+            RiskDollars = Math.Round(atRisk, 2),
+            RiskPercent = equity <= 0m ? 0m : Math.Round(atRisk / equity * 100m, 2),
+        },
+    };
+}
 
 static string GateName(SelectionFailure f) => f switch
 
