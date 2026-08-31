@@ -3,6 +3,12 @@
 **Autonomous defined-risk options trading agent on Alpaca.**
 Built by Uncharted Labs for the lablab.ai × Alpaca AI Trading Agents Hackathon, 28 Aug – 4 Sep 2026.
 
+### → [uncharted-options.vercel.app](https://uncharted-options.vercel.app)
+
+The live dashboard. The stage buttons replay the agent's actual history — click through the
+days and watch the refusals accumulate against ceilings that never move. Every figure is read
+from this repository's decision log and from Alpaca; nothing on the page is a fixture.
+
 ---
 
 ## The thesis: risk containment is a property of the instrument, not of agent code
