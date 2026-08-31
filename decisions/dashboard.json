@@ -1,31 +1,39 @@
 {
-  "generatedAt": "2026-08-31T17:04:03Z",
+  "generatedAt": "2026-08-31T19:35:35Z",
   "day": "Day 1 of 4",
-  "clock": "13:04 ET | 08.31.26",
+  "clock": "15:35 ET | 08.31.26",
   "dryRun": true,
   "account": "PA3ILISQPBT4",
   "equity": 100000,
   "positions": [],
   "rejections": [
     {
-      "t": "13:04",
-      "cand": "SPY $15 width",
+      "t": "15:35",
+      "cand": "SPY $5 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
-      "reason": "783C quote 133.3 % wide",
+      "reason": "774C quote 10.8 % wide",
       "executed": false
     },
     {
-      "t": "13:04",
-      "cand": "SPY 768C/773C",
-      "verdict": "TAKEN",
-      "gate": "sized",
-      "reason": "delta 0.39 | 2.27:1 | $153.00 max loss | 1.53% of equity",
+      "t": "15:35",
+      "cand": "SPY $10 width",
+      "verdict": "REJECTED",
+      "gate": "liquidity",
+      "reason": "779C quote 11.8 % wide",
+      "executed": false
+    },
+    {
+      "t": "15:35",
+      "cand": "SPY $15 width",
+      "verdict": "REJECTED",
+      "gate": "liquidity",
+      "reason": "784C quote 28.6 % wide",
       "executed": false
     }
   ],
   "closed": [],
-  "preGate": 61,
+  "preGate": 60,
   "wins": 0,
   "losses": 0,
   "curve": [
