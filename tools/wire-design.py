@@ -60,12 +60,53 @@ LIVE_JS = r"""
       catch (e) { return { state: 'error', message: String(e) }; }
     };
     const [dec, pf] = await Promise.all([j('/api/decisions'), j('/api/portfolio')]);
-    this.setState({ live: this.mapLive(dec, pf), src: { dec, pf } });
+    this.setState({ days: this.buildDays(dec, pf), live: this.mapLive(dec, pf), src: { dec, pf } });
   }
 
-  mapLive(dec, pf) {
+  // The log is append-only history, so the stage buttons replay it rather than switching
+  // between scripted scenes. Each checkpoint is a day the agent actually ran, and selecting
+  // one shows the book as it stood at the end of that day -- gates filling and refusals
+  // accumulating, which is the discipline shown over time rather than at one instant.
+  buildDays(dec, pf) {
+    const history = (dec && dec.history) || [];
+    if (!history.length) return [];
+
+    const byDay = new Map();
+    history.slice().sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)))
+      .forEach((r) => {
+        const day = String(r.timestamp).slice(0, 10);
+        if (!byDay.has(day)) byDay.set(day, []);
+        byDay.get(day).push(r);
+      });
+
+    const days = [...byDay.entries()].map(([date, runs]) => ({ date, runs }));
+
+    // Three slots, because the design has three buttons: first, middle, latest. With fewer
+    // days than slots the surplus is labelled as empty rather than duplicating a day.
+    const pick = days.length >= 3
+      ? [days[0], days[Math.floor((days.length - 1) / 2)], days[days.length - 1]]
+      : days.length === 2 ? [days[0], null, days[1]]
+      : [days[0], null, null];
+
+    return pick.map((d) => d && ({
+      date: d.date,
+      // "08.31" -- the design sets these small and monospaced.
+      label: d.date.slice(5).replace('-', '.'),
+      runs: d.runs,
+      upto: days.slice(0, days.findIndex((x) => x.date === d.date) + 1),
+    }));
+  }
+
+  mapLive(dec, pf, stageIndex) {
     const feed = dec && dec.feed ? dec.feed : null;
     if (!feed) return null;
+
+    // When replaying a checkpoint, the run for that day supplies the state and every run up
+    // to it supplies the accumulated stream.
+    const days = this.state.days && this.state.days.length ? this.state.days : this.buildDays(dec, pf);
+    const cp = (typeof stageIndex === 'number' && days[stageIndex]) ? days[stageIndex] : null;
+    const asOf = cp ? cp.runs[cp.runs.length - 1] : null;
+    const accumulated = cp ? cp.upto.flatMap((d) => d.runs) : null;
 
     const num = (s) => {
       if (typeof s === 'number') return s;
@@ -107,7 +148,16 @@ LIVE_JS = r"""
     // ledger does not file it as a refusal it never was.
     const unplaced = { TAKEN: 'WOULD TAKE', CLOSED: 'WOULD CLOSE' };
 
-    const rejections = (feed.rejections || []).map((r) => {
+    // Replayed: every decision from the first day through the selected one, newest first.
+    const sourceRejections = accumulated
+      ? accumulated.flatMap((r) => (r.decisions || []).map((d) => ({
+          t: String(r.timestamp).slice(11, 16),
+          cand: d.structure ? d.underlying + ' ' + d.structure : d.underlying,
+          verdict: d.verdict, gate: d.gate, reason: d.finding, executed: d.executed,
+        }))).reverse()
+      : (feed.rejections || []);
+
+    const rejections = sourceRejections.map((r) => {
       const approvedOnly = !r.executed && unplaced[r.verdict];
       return {
         t: r.t,
@@ -124,7 +174,7 @@ LIVE_JS = r"""
 
     const realised = closed.reduce((a, c) => a + c[4], 0);
     const openPl = positions.reduce((a, p) => a + p.open, 0);
-    const equity = pf && pf.account ? pf.account.equity : feed.equity;
+    const equity = asOf ? asOf.equity : (pf && pf.account ? pf.account.equity : feed.equity);
 
     // renderVals computes eq = inception + realised + openPl. Solving for inception makes the
     // displayed equity the broker's figure rather than a reconstruction of it.
@@ -134,12 +184,13 @@ LIVE_JS = r"""
 
     return {
       inception,
-      day: String(feed.day || '').toLowerCase(),
-      clock: feed.clock,
+      day: asOf ? String(asOf.calendarState || '').replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase() : String(feed.day || '').toLowerCase(),
+      clock: asOf ? String(asOf.timestamp).slice(11, 16) + ' UTC | ' + String(asOf.timestamp).slice(5, 10).replace('-', '.') : feed.clock,
+      checkpoints: days.map((d) => (d ? d.label : '')),
       positions,
       rejections,
       closed,
-      preGate: feed.preGate || 0,
+      preGate: accumulated ? accumulated.length * 0 + (feed.preGate || 0) : (feed.preGate || 0),
       wins: feed.wins || 0,
       losses: feed.losses || 0,
       curve,
@@ -154,6 +205,15 @@ LIVE_JS = r"""
   }
 
   data(stage) {
+    const idx = { day0: 0, thin: 1, full: 2 }[stage];
+    const src = this.state.src;
+
+    // 'full' is the latest checkpoint, which is also the live view.
+    if (src && typeof idx === 'number') {
+      const replayed = this.mapLive(src.dec, src.pf, idx);
+      if (replayed) return replayed;
+    }
+
     const live = this.state.live;
     if (live) return live;
 
@@ -165,6 +225,7 @@ LIVE_JS = r"""
       preGate: 0, wins: 0, losses: 0, curve: [],
       curveFrom: '', curveTo: '', curveLabel: 'Equity',
       symbols: [], blackoutNote: '', concurrencyNote: '', fundingNote: '',
+      checkpoints: [],
     };
   }
 """
@@ -199,6 +260,39 @@ def unbundle(src: pathlib.Path) -> str:
     return template
 
 
+NL = chr(10)
+
+# The three stage buttons live in the template as text nodes, not in the script. Their
+# handlers and styles are untouched; only the labels become data, so the buttons describe
+# the log rather than a script.
+_BTN = '<div sc-camel-on-click="{{ %s }}" style="{{ %s }}">%s</div>'
+
+MARKUP_SUBSTITUTIONS = [
+    (
+        "stage button text",
+        NL.join([
+            _BTN % ('setDay0', 'b0', 'Day 0'),
+            _BTN % ('setThin', 'b1', 'Day 2'),
+            _BTN % ('setFull', 'b2', 'Day 4'),
+        ]),
+        NL.join([
+            _BTN % ('setDay0', 'b0', '{{ dayLabel0 }}'),
+            _BTN % ('setThin', 'b1', '{{ dayLabel1 }}'),
+            _BTN % ('setFull', 'b2', '{{ dayLabel2 }}'),
+        ]),
+    ),
+]
+
+
+def patch_markup(template: str) -> str:
+    for label, old, new in MARKUP_SUBSTITUTIONS:
+        if old not in template:
+            sys.exit(f"error: could not find the {label} markup. The design changed.")
+        template = template.replace(old, new, 1)
+        print(f"  de-fixtured: {label}")
+    return template
+
+
 def patch(template: str) -> str:
     m = re.search(r'(<script type="text/x-dc"[^>]*>)(.*?)(</script>)', template, re.S)
     if not m:
@@ -229,7 +323,7 @@ def patch(template: str) -> str:
     # Seed the state key the new data() reads.
     logic = logic.replace(
         "state = { theme: null, stage: null, extra: [], fresh: null };",
-        "state = { theme: null, stage: null, extra: [], fresh: null, live: null, src: null };",
+        "state = { theme: null, stage: null, extra: [], fresh: null, live: null, src: null, days: [] };",
         1,
     )
 
@@ -239,7 +333,7 @@ def patch(template: str) -> str:
     logic = honesty_patch(logic)
 
     print("  patched: componentDidMount, componentWillUnmount, queue, data")
-    return template[: m.start(2)] + logic + template[m.end(2):]
+    return patch_markup(template[: m.start(2)] + logic + template[m.end(2):])
 
 
 # ------------------------------------------------------------------- fixtures in the render
@@ -280,6 +374,16 @@ SUBSTITUTIONS = [
         "concurrency cap",
         "        { label: 'Open positions', value: String(nPos), note: 'of 5 concurrent · cap unchanged', color: nPos === 0 ? dim : ink },",
         "        { label: 'Open positions', value: String(nPos), note: d.concurrencyNote || '', color: nPos === 0 ? dim : ink },",
+    ),
+    (
+        "stage button labels",
+        "      b0: this.btn(stage === 'day0', true), b1: this.btn(stage === 'thin', true), b2: this.btn(stage === 'full', true),",
+        """      b0: this.btn(stage === 'day0', true), b1: this.btn(stage === 'thin', true), b2: this.btn(stage === 'full', true),
+      // The buttons describe the log rather than a script: each is a day the agent ran.
+      // An em dash marks a slot the history does not reach yet.
+      dayLabel0: (d.checkpoints && d.checkpoints[0]) || '—',
+      dayLabel1: (d.checkpoints && d.checkpoints[1]) || '—',
+      dayLabel2: (d.checkpoints && d.checkpoints[2]) || '—',""",
     ),
     (
         "funding note",

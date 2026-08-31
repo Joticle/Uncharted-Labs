@@ -306,9 +306,9 @@ a:hover{color:#7d4d07}
 <span style="width:6px;height:6px;border-radius:50%;background:var(--live,#16875a);display:inline-block"></span>{{ scanLabel }}
 </div>
 <div style="display:flex;border:1px solid var(--line,rgba(18,26,34,.10));border-radius:2px;overflow:hidden;background:var(--card,#fbfcfd)">
-<div sc-camel-on-click="{{ setDay0 }}" style="{{ b0 }}">Day 0</div>
-<div sc-camel-on-click="{{ setThin }}" style="{{ b1 }}">Day 2</div>
-<div sc-camel-on-click="{{ setFull }}" style="{{ b2 }}">Day 4</div>
+<div sc-camel-on-click="{{ setDay0 }}" style="{{ b0 }}">{{ dayLabel0 }}</div>
+<div sc-camel-on-click="{{ setThin }}" style="{{ b1 }}">{{ dayLabel1 }}</div>
+<div sc-camel-on-click="{{ setFull }}" style="{{ b2 }}">{{ dayLabel2 }}</div>
 </div>
 <div style="display:flex;border:1px solid var(--line,rgba(18,26,34,.10));border-radius:2px;overflow:hidden;background:var(--card,#fbfcfd)">
 <div sc-camel-on-click="{{ setLight }}" style="{{ lightBtn }}">Light</div>
@@ -547,7 +547,7 @@ a:hover{color:#7d4d07}
 </x-dc>
 <script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;day0&quot;,&quot;thin&quot;,&quot;full&quot;],&quot;default&quot;:&quot;full&quot;,&quot;tsType&quot;:&quot;'day0'|'thin'|'full'&quot;,&quot;section&quot;:&quot;Data state&quot;},&quot;maxRiskPct&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:3,&quot;min&quot;:1,&quot;max&quot;:6,&quot;step&quot;:0.25,&quot;unit&quot;:&quot;%&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Mandate&quot;},&quot;maxUnderlyingPct&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:5,&quot;min&quot;:2,&quot;max&quot;:10,&quot;step&quot;:0.5,&quot;unit&quot;:&quot;%&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Mandate&quot;},&quot;liveScan&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
 class Component extends DCLogic {
-  state = { theme: null, stage: null, extra: [], fresh: null, live: null, src: null };
+  state = { theme: null, stage: null, extra: [], fresh: null, live: null, src: null, days: [] };
 
   
   
@@ -572,12 +572,53 @@ class Component extends DCLogic {
       catch (e) { return { state: 'error', message: String(e) }; }
     };
     const [dec, pf] = await Promise.all([j('/api/decisions'), j('/api/portfolio')]);
-    this.setState({ live: this.mapLive(dec, pf), src: { dec, pf } });
+    this.setState({ days: this.buildDays(dec, pf), live: this.mapLive(dec, pf), src: { dec, pf } });
   }
 
-  mapLive(dec, pf) {
+  // The log is append-only history, so the stage buttons replay it rather than switching
+  // between scripted scenes. Each checkpoint is a day the agent actually ran, and selecting
+  // one shows the book as it stood at the end of that day -- gates filling and refusals
+  // accumulating, which is the discipline shown over time rather than at one instant.
+  buildDays(dec, pf) {
+    const history = (dec && dec.history) || [];
+    if (!history.length) return [];
+
+    const byDay = new Map();
+    history.slice().sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)))
+      .forEach((r) => {
+        const day = String(r.timestamp).slice(0, 10);
+        if (!byDay.has(day)) byDay.set(day, []);
+        byDay.get(day).push(r);
+      });
+
+    const days = [...byDay.entries()].map(([date, runs]) => ({ date, runs }));
+
+    // Three slots, because the design has three buttons: first, middle, latest. With fewer
+    // days than slots the surplus is labelled as empty rather than duplicating a day.
+    const pick = days.length >= 3
+      ? [days[0], days[Math.floor((days.length - 1) / 2)], days[days.length - 1]]
+      : days.length === 2 ? [days[0], null, days[1]]
+      : [days[0], null, null];
+
+    return pick.map((d) => d && ({
+      date: d.date,
+      // "08.31" -- the design sets these small and monospaced.
+      label: d.date.slice(5).replace('-', '.'),
+      runs: d.runs,
+      upto: days.slice(0, days.findIndex((x) => x.date === d.date) + 1),
+    }));
+  }
+
+  mapLive(dec, pf, stageIndex) {
     const feed = dec && dec.feed ? dec.feed : null;
     if (!feed) return null;
+
+    // When replaying a checkpoint, the run for that day supplies the state and every run up
+    // to it supplies the accumulated stream.
+    const days = this.state.days && this.state.days.length ? this.state.days : this.buildDays(dec, pf);
+    const cp = (typeof stageIndex === 'number' && days[stageIndex]) ? days[stageIndex] : null;
+    const asOf = cp ? cp.runs[cp.runs.length - 1] : null;
+    const accumulated = cp ? cp.upto.flatMap((d) => d.runs) : null;
 
     const num = (s) => {
       if (typeof s === 'number') return s;
@@ -619,7 +660,16 @@ class Component extends DCLogic {
     // ledger does not file it as a refusal it never was.
     const unplaced = { TAKEN: 'WOULD TAKE', CLOSED: 'WOULD CLOSE' };
 
-    const rejections = (feed.rejections || []).map((r) => {
+    // Replayed: every decision from the first day through the selected one, newest first.
+    const sourceRejections = accumulated
+      ? accumulated.flatMap((r) => (r.decisions || []).map((d) => ({
+          t: String(r.timestamp).slice(11, 16),
+          cand: d.structure ? d.underlying + ' ' + d.structure : d.underlying,
+          verdict: d.verdict, gate: d.gate, reason: d.finding, executed: d.executed,
+        }))).reverse()
+      : (feed.rejections || []);
+
+    const rejections = sourceRejections.map((r) => {
       const approvedOnly = !r.executed && unplaced[r.verdict];
       return {
         t: r.t,
@@ -636,7 +686,7 @@ class Component extends DCLogic {
 
     const realised = closed.reduce((a, c) => a + c[4], 0);
     const openPl = positions.reduce((a, p) => a + p.open, 0);
-    const equity = pf && pf.account ? pf.account.equity : feed.equity;
+    const equity = asOf ? asOf.equity : (pf && pf.account ? pf.account.equity : feed.equity);
 
     // renderVals computes eq = inception + realised + openPl. Solving for inception makes the
     // displayed equity the broker's figure rather than a reconstruction of it.
@@ -646,12 +696,13 @@ class Component extends DCLogic {
 
     return {
       inception,
-      day: String(feed.day || '').toLowerCase(),
-      clock: feed.clock,
+      day: asOf ? String(asOf.calendarState || '').replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase() : String(feed.day || '').toLowerCase(),
+      clock: asOf ? String(asOf.timestamp).slice(11, 16) + ' UTC | ' + String(asOf.timestamp).slice(5, 10).replace('-', '.') : feed.clock,
+      checkpoints: days.map((d) => (d ? d.label : '')),
       positions,
       rejections,
       closed,
-      preGate: feed.preGate || 0,
+      preGate: accumulated ? accumulated.length * 0 + (feed.preGate || 0) : (feed.preGate || 0),
       wins: feed.wins || 0,
       losses: feed.losses || 0,
       curve,
@@ -666,6 +717,15 @@ class Component extends DCLogic {
   }
 
   data(stage) {
+    const idx = { day0: 0, thin: 1, full: 2 }[stage];
+    const src = this.state.src;
+
+    // 'full' is the latest checkpoint, which is also the live view.
+    if (src && typeof idx === 'number') {
+      const replayed = this.mapLive(src.dec, src.pf, idx);
+      if (replayed) return replayed;
+    }
+
     const live = this.state.live;
     if (live) return live;
 
@@ -677,6 +737,7 @@ class Component extends DCLogic {
       preGate: 0, wins: 0, losses: 0, curve: [],
       curveFrom: '', curveTo: '', curveLabel: 'Equity',
       symbols: [], blackoutNote: '', concurrencyNote: '', fundingNote: '',
+      checkpoints: [],
     };
   }
 
@@ -875,6 +936,11 @@ class Component extends DCLogic {
       setFull: () => this.setState({ stage: 'full' }),
       lightBtn: this.btn(!dark), darkBtn: this.btn(dark),
       b0: this.btn(stage === 'day0', true), b1: this.btn(stage === 'thin', true), b2: this.btn(stage === 'full', true),
+      // The buttons describe the log rather than a script: each is a day the agent ran.
+      // An em dash marks a slot the history does not reach yet.
+      dayLabel0: (d.checkpoints && d.checkpoints[0]) || '—',
+      dayLabel1: (d.checkpoints && d.checkpoints[1]) || '—',
+      dayLabel2: (d.checkpoints && d.checkpoints[2]) || '—',
       stats: [
         { label: 'Equity', value: usd0(eq), size: '24px',
           note: deltaV === 0 ? (d.fundingNote || '') : (deltaV > 0 ? '+' : '−') + usd0(Math.abs(deltaV)) + ' since funding', color: ink },

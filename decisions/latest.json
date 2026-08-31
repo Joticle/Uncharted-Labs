@@ -10,8 +10,8 @@
   "calendarState": "OpenAndManage",
   "riskPerTrade": {
     "label": "risk per trade",
-    "ceilingPercent": 3.00,
-    "ceilingDollars": 3000.00,
+    "ceilingPercent": 3.0,
+    "ceilingDollars": 3000.0,
     "deployedDollars": 0,
     "deployedPercent": 0,
     "utilisation": 0
@@ -56,9 +56,9 @@
         "debit": 1.53,
         "rewardRisk": 2.27,
         "costDragPercent": 2.0,
-        "maxLossDollars": 153.00,
+        "maxLossDollars": 153.0,
         "contracts": 10,
-        "riskDollars": 1530.00,
+        "riskDollars": 1530.0,
         "riskPercent": 1.53
       }
     }
