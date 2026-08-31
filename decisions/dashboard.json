@@ -1,51 +1,52 @@
 {
-  "generatedAt": "2026-08-30T17:44:55Z",
-  "day": "Pre-open",
-  "clock": "13:44 ET | 08.30.26",
+  "generatedAt": "2026-08-31T17:04:03Z",
+  "day": "Day 1 of 4",
+  "clock": "13:04 ET | 08.31.26",
   "dryRun": true,
   "account": "PA3ILISQPBT4",
   "equity": 100000,
   "positions": [],
   "rejections": [
     {
-      "t": "13:44",
-      "cand": "SPY $10 width",
-      "verdict": "REJECTED",
-      "gate": "liquidity",
-      "reason": "782C quote 10.5 % wide",
-      "executed": false
-    },
-    {
-      "t": "13:44",
+      "t": "13:04",
       "cand": "SPY $15 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
-      "reason": "787C quote 18.2 % wide",
+      "reason": "783C quote 133.3 % wide",
       "executed": false
     },
     {
-      "t": "13:44",
-      "cand": "SPY 772C/777C",
+      "t": "13:04",
+      "cand": "SPY 768C/773C",
       "verdict": "TAKEN",
       "gate": "sized",
-      "reason": "delta 0.39 | 2.09:1 | $162.00 max loss | 1.62% of equity",
+      "reason": "delta 0.39 | 2.27:1 | $153.00 max loss | 1.53% of equity",
       "executed": false
     }
   ],
   "closed": [],
-  "preGate": 58,
+  "preGate": 61,
   "wins": 0,
   "losses": 0,
   "curve": [
     100000,
     100000,
     100000,
-    100000,
     100000
   ],
   "curveFrom": "Inception 08.31",
-  "curveTo": "08.30",
+  "curveTo": "08.31",
   "curveLabel": "Account equity",
   "riskDeployed": 0,
-  "riskCeiling": 3000.00
+  "riskCeiling": 3000.00,
+  "symbols": [
+    {
+      "n": "SPY",
+      "note": "no position",
+      "blackout": false
+    }
+  ],
+  "blackoutNote": "",
+  "concurrencyNote": "no count cap | bounded by the 3 and the 5, max 10 per order",
+  "fundingNote": "funded at $100,000.00"
 }

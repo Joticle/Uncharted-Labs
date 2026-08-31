@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="assets/6d1dd83d-9061-4bbe-ab7d-4156197fb7a8.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<style>/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/3f64cb04-9578-411e-9164-f75c1e29b7df.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/390eb58b-7d41-4f3b-952c-39c88cb4e8e7.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/8c92bc7b-a15e-4287-913d-1796604167d6.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/a31d910d-ad7d-43f8-9d2d-3f692a47b59f.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/8a661721-b505-4dac-ad17-b8d81da66b92.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/8468ff6a-a62c-46bb-b5df-cc2f854ea1e9.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/f6cb004c-46e0-4d9e-99d1-2f931827f169.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/6e94e6bd-1299-495d-8750-fbde18ce07e4.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/871ffdc6-63e2-47cf-8f69-9d9a0791e558.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/f8fb42be-142f-4827-b967-b69491cf3dce.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/8e3d4709-2219-4a77-b3fa-0373efcdf936.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/a3543521-8896-4f09-8d93-90c5fb6005a2.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/115717f0-b551-4daa-90d2-bc92a3cec1f0.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/eb1ee95d-f157-43e0-9120-88f395d88a18.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/dc8a8bbd-2c53-489a-ae89-8fb048bb59a4.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url("assets/09d4c050-09b1-48d6-9daa-3a4f5ac06a84.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url("assets/a2984714-a9c8-43aa-94c5-186d465bed4b.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url("assets/54cd7f61-4e75-4f97-abd8-edf6e0fc76bc.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/09d4c050-09b1-48d6-9daa-3a4f5ac06a84.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/a2984714-a9c8-43aa-94c5-186d465bed4b.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/54cd7f61-4e75-4f97-abd8-edf6e0fc76bc.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("assets/c2296f87-0fc3-4347-bfc5-5e5ae5066d37.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("assets/c83ba8e9-d6c1-46d1-9b84-0105025dbea0.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("assets/85bc20b0-32c7-4808-8517-654ade84ef8c.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/c2296f87-0fc3-4347-bfc5-5e5ae5066d37.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/c83ba8e9-d6c1-46d1-9b84-0105025dbea0.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/85bc20b0-32c7-4808-8517-654ade84ef8c.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/c2296f87-0fc3-4347-bfc5-5e5ae5066d37.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/c83ba8e9-d6c1-46d1-9b84-0105025dbea0.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/85bc20b0-32c7-4808-8517-654ade84ef8c.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+</style>
+
+<style>
+body{margin:0;background:#edf0f3;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:#a2650c;text-decoration:none}
+a:hover{color:#7d4d07}
+@keyframes bwIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+[data-fresh="1"]{animation:bwIn .24s ease-out}
+</style>
+</helmet>
+<div style="min-height:100vh;background:var(--bg,#edf0f3);color:var(--ink,#131a20);font-family:'Newsreader',Georgia,serif;padding:34px 40px 56px;box-sizing:border-box;{{ themeVars }}">
+<div style="max-width:1460px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;padding-bottom:18px;border-bottom:1px solid var(--line,rgba(18,26,34,.10))">
+<div style="display:flex;flex-direction:column;gap:9px;min-width:0">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3,#8b98a4)">{{ eyebrow }}</div>
+<div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap">
+<div style="font-family:'Newsreader',serif;font-size:46px;font-weight:400;letter-spacing:-.018em;line-height:1">Uncharted Options</div>
+<div style="font-family:'Newsreader',serif;font-style:italic;font-size:20px;font-weight:300;color:var(--ink2,#5c6b78)">holds the line, then reports it</div>
+</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink2,#5c6b78)">{{ stateLine }}</div>
+</div>
+<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+<div style="display:flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:var(--ink2,#5c6b78)">
+<span style="width:6px;height:6px;border-radius:50%;background:var(--live,#16875a);display:inline-block"></span>{{ scanLabel }}
+</div>
+<div style="display:flex;border:1px solid var(--line,rgba(18,26,34,.10));border-radius:2px;overflow:hidden;background:var(--card,#fbfcfd)">
+<div sc-camel-on-click="{{ setDay0 }}" style="{{ b0 }}">Day 0</div>
+<div sc-camel-on-click="{{ setThin }}" style="{{ b1 }}">Day 2</div>
+<div sc-camel-on-click="{{ setFull }}" style="{{ b2 }}">Day 4</div>
+</div>
+<div style="display:flex;border:1px solid var(--line,rgba(18,26,34,.10));border-radius:2px;overflow:hidden;background:var(--card,#fbfcfd)">
+<div sc-camel-on-click="{{ setLight }}" style="{{ lightBtn }}">Light</div>
+<div sc-camel-on-click="{{ setDark }}" style="{{ darkBtn }}">Dark</div>
+</div>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(146px,1fr));gap:12px">
+<sc-for list="{{ stats }}" as="s" hint-placeholder-count="6">
+<div style="background:var(--card,#fbfcfd);border:1px solid var(--line,rgba(18,26,34,.10));border-radius:3px;box-shadow:var(--shadow,0 1px 2px rgba(18,26,34,.05));padding:15px 17px 14px;display:flex;flex-direction:column;gap:7px">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--ink3,#8b98a4)">{{ s.label }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:{{ s.size }};font-weight:500;letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap;color:{{ s.color }}">{{ s.value }}</div>
+<div style="font-family:'Newsreader',serif;font-size:13.5px;font-weight:300;line-height:1.3;color:var(--ink2,#5c6b78)">{{ s.note }}</div>
+</div>
+</sc-for>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:14px;align-items:start">
+
+<div style="background:var(--card,#fbfcfd);border:1px solid var(--line,rgba(18,26,34,.10));border-radius:3px;box-shadow:var(--shadow,0 1px 2px rgba(18,26,34,.05));padding:20px 22px 18px;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--acc,#a2650c)">The mandate · live</div>
+<div style="font-family:'Newsreader',serif;font-size:25px;font-weight:400;letter-spacing:-.015em;line-height:1.1">Two hard ceilings</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:11px">
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3,#8b98a4)"><span>Risk per position</span><span style="color:var(--ink2,#5c6b78);white-space:nowrap">ceiling {{ riskCeilLabel }}</span></div>
+<sc-if value="{{ hasPositions }}" hint-placeholder-val="{{ true }}">
+<sc-for list="{{ gatesPos }}" as="g" hint-placeholder-count="3">
+<div style="display:grid;grid-template-columns:minmax(0,118px) minmax(0,1fr) minmax(0,58px);gap:12px;align-items:center">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink,#131a20)">{{ g.name }}</div>
+<div style="position:relative;height:9px;background:var(--chan,rgba(18,26,34,.055));border:1px solid var(--line2,rgba(18,26,34,.06));border-radius:1px;overflow:hidden">
+<div style="position:absolute;left:0;top:0;bottom:0;width:{{ g.w }};background:{{ g.fill }}"></div>
+<div style="position:absolute;left:25%;top:0;bottom:0;width:1px;background:var(--tick,rgba(18,26,34,.13))"></div>
+<div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--tick,rgba(18,26,34,.13))"></div>
+<div style="position:absolute;left:75%;top:0;bottom:0;width:1px;background:var(--tick,rgba(18,26,34,.13))"></div>
+</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;color:{{ g.valColor }}">{{ g.pct }}</div>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{ noPositions }}" hint-placeholder-val="{{ false }}">
+<div style="display:grid;grid-template-columns:minmax(0,118px) minmax(0,1fr) minmax(0,58px);gap:12px;align-items:center">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:500;color:var(--ink3,#8b98a4)">no position</div>
+<div style="position:relative;height:9px;background:var(--chan,rgba(18,26,34,.055));border:1px solid var(--line2,rgba(18,26,34,.06));border-radius:1px;overflow:hidden">
+<div style="position:absolute;left:25%;top:0;bottom:0;width:1px;background:var(--tick,rgba(18,26,34,.13))"></div>
+<div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--tick,rgba(18,26,34,.13))"></div>
+<div style="position:absolute;left:75%;top:0;bottom:0;width:1px;background:var(--tick,rgba(18,26,34,.13))"></div>
+</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;color:var(--ink3,#8b98a4)">0.00%</div>
+</div>
+<div style="font-family:'Newsreader',serif;font-size:13px;font-weight:300;line-height:1.4;color:var(--ink2,#5c6b78)">Full headroom. The ceiling is unchanged whether or not anything is deployed against it.</div>
+</sc-if>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:11px">
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3,#8b98a4)"><span>Exposure per underlying</span><span style="color:var(--ink2,#5c6b78);white-space:nowrap">ceiling {{ expCeilLabel }}</span></div>
+<sc-for list="{{ gatesSym }}" as="g" hint-placeholder-count="3">
+<div style="display:grid;grid-template-columns:minmax(0,118px) minmax(0,1fr) minmax(0,74px);gap:12px;align-items:center">
+<div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;color:var(--ink,#131a20)">{{ g.name }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.06em;color:{{ g.subColor }}">{{ g.sub }}</div>
+</div>
+<div style="position:relative;height:14px;background:{{ g.chan }};border:1px solid var(--line2,rgba(18,26,34,.06));border-radius:1px;overflow:hidden">
+<div style="position:absolute;left:0;top:0;bottom:0;width:{{ g.w }};background:{{ g.fill }}"></div>
+<div style="position:absolute;left:25%;top:0;bottom:0;width:1px;background:var(--tick,rgba(18,26,34,.13))"></div>
+<div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--tick,rgba(18,26,34,.13))"></div>
+<div style="position:absolute;left:75%;top:0;bottom:0;width:1px;background:var(--tick,rgba(18,26,34,.13))"></div>
+<div style="position:absolute;right:0;top:0;bottom:0;width:2px;background:var(--wall,rgba(18,26,34,.32))"></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ g.valColor }}">{{ g.pct }}</div>
+<div style="{{ g.headStyle }}">{{ g.head }}</div>
+</div>
+</div>
+</sc-for>
+<div style="font-family:'Newsreader',serif;font-size:13px;font-weight:300;line-height:1.4;color:var(--ink2,#5c6b78);text-wrap:pretty">{{ blackoutNote }}</div>
+</div>
+
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-top:14px;border-top:1px solid var(--line2,rgba(18,26,34,.06))">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3,#8b98a4)">Aggregate deployed</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">{{ aggLine }}</div>
+</div>
+<div style="font-family:'Newsreader',serif;font-size:14px;font-weight:300;line-height:1.45;color:var(--ink2,#5c6b78);text-wrap:pretty">Maximum loss is fixed when the order is constructed and enforced by the broker and the OCC. The agent cannot exceed it — not by error, not by intent.</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3,#8b98a4)">{{ posHeading }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3,#8b98a4);white-space:nowrap">max loss fixed at entry</div>
+</div>
+<sc-for list="{{ positions }}" as="p" hint-placeholder-count="3">
+<div style="background:var(--card,#fbfcfd);border:1px solid var(--line,rgba(18,26,34,.10));border-radius:3px;box-shadow:var(--shadow,0 1px 2px rgba(18,26,34,.05));padding:16px 18px;display:flex;flex-wrap:wrap;gap:16px 20px;align-items:center">
+<div style="display:flex;flex-direction:column;gap:12px;min-width:0;flex:1 1 300px;overflow:hidden">
+<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums">{{ p.title }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3,#8b98a4)">{{ p.kind }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink2,#5c6b78);border:1px solid var(--line,rgba(18,26,34,.10));padding:2px 6px;border-radius:1px">{{ p.qty }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink2,#5c6b78);border:1px solid var(--line,rgba(18,26,34,.10));padding:2px 6px;border-radius:1px">{{ p.dte }}</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:8px;min-width:0">
+<sc-for list="{{ p.legs }}" as="l" hint-placeholder-count="2">
+<div style="display:flex;align-items:baseline;gap:9px;padding:6px 9px;background:var(--card2,#f4f6f8);border-radius:2px">
+<span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.12em;color:var(--ink3,#8b98a4);width:40px">{{ l.side }}</span>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums">{{ l.strike }}</span>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:400;font-variant-numeric:tabular-nums;color:var(--ink2,#5c6b78);margin-left:auto">{{ l.px }}</span>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink3,#8b98a4)">{{ l.dist }}</span>
+</div>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:10px;min-width:0">
+<sc-for list="{{ p.metrics }}" as="m" hint-placeholder-count="4">
+<div style="display:flex;flex-direction:column;gap:3px">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3,#8b98a4)">{{ m.k }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ m.c }}">{{ m.v }}</div>
+</div>
+</sc-for>
+</div>
+</div>
+<div style="border:1px solid var(--wall,rgba(18,26,34,.32));border-radius:2px;padding:10px 12px 9px;display:flex;flex-direction:column;gap:5px;background:var(--maxbg,transparent);flex:0 1 186px;min-width:170px">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2,#5c6b78)">Max loss · immutable</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:25px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1">{{ p.maxLoss }}</div>
+<div style="height:1px;background:var(--line,rgba(18,26,34,.10))"></div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink2,#5c6b78)">{{ p.maxLossPct }} of equity</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:400;font-variant-numeric:tabular-nums;color:var(--ink3,#8b98a4)">{{ p.maxLossUnit }}</div>
+<div style="font-family:'Newsreader',serif;font-size:12px;font-weight:300;line-height:1.35;color:var(--ink3,#8b98a4)">Enforced by broker · OCC</div>
+</div>
+</div>
+</sc-for>
+<sc-if value="{{ noPositions }}" hint-placeholder-val="{{ false }}">
+<div style="border:1px dashed var(--line,rgba(18,26,34,.22));border-radius:3px;padding:26px 22px;display:flex;flex-direction:column;gap:10px;background:var(--card,#fbfcfd)">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3,#8b98a4)">No position open · $0 at risk</div>
+<div style="font-family:'Newsreader',serif;font-size:21px;font-weight:400;letter-spacing:-.012em;line-height:1.2">Nothing has cleared every gate yet.</div>
+<div style="font-family:'Newsreader',serif;font-size:14px;font-weight:300;line-height:1.45;color:var(--ink2,#5c6b78);max-width:52ch;text-wrap:pretty">An empty book is a valid state, not a missing one. The agent is scanning; the ceilings to the left are intact and the stream below records every candidate it has declined so far.</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;padding-top:8px;border-top:1px solid var(--line2,rgba(18,26,34,.06))">
+<sc-for list="{{ emptyPosStats }}" as="m" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:3px">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3,#8b98a4)">{{ m.k }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">{{ m.v }}</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+
+<div style="background:var(--card,#fbfcfd);border:1px solid var(--line,rgba(18,26,34,.10));border-radius:3px;box-shadow:var(--shadow,0 1px 2px rgba(18,26,34,.05));display:flex;flex-wrap:wrap;align-items:stretch">
+<div style="padding:20px 20px 18px;border-right:1px solid var(--line2,rgba(18,26,34,.06));display:flex;flex-direction:column;gap:16px;flex:0 1 292px;min-width:250px;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3,#8b98a4)">What was refused</div>
+<div style="font-family:'Newsreader',serif;font-size:25px;font-weight:400;letter-spacing:-.015em;line-height:1.1">The rejection stream</div>
+<div style="font-family:'Newsreader',serif;font-size:13.5px;font-weight:300;line-height:1.45;color:var(--ink2,#5c6b78);text-wrap:pretty">Every candidate the agent evaluated and declined, with the gate that stopped it. This is the discipline, itemised.</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;padding-top:14px;border-top:1px solid var(--line2,rgba(18,26,34,.06))">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3,#8b98a4)">Gate ledger · today</div>
+<sc-for list="{{ ledger }}" as="l" hint-placeholder-count="6">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 40px 18px;gap:8px;align-items:center">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;color:var(--ink2,#5c6b78);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ l.name }}</div>
+<div style="height:5px;background:var(--chan,rgba(18,26,34,.055))"><div style="height:100%;width:{{ l.w }};background:var(--held,#46606f)"></div></div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right">{{ l.n }}</div>
+</div>
+</sc-for>
+</div>
+<div style="padding-top:14px;border-top:1px solid var(--line2,rgba(18,26,34,.06));font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;line-height:1.7;font-variant-numeric:tabular-nums;color:var(--ink3,#8b98a4);letter-spacing:.02em;white-space:pre-line">{{ evalLine }}</div>
+</div>
+<div style="padding:14px 0 4px;flex:1 1 340px;min-width:0">
+<div style="display:flex;flex-wrap:wrap;column-gap:12px;row-gap:3px;padding:0 22px 9px;border-bottom:1px solid var(--line2,rgba(18,26,34,.06));font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3,#8b98a4)">
+<div style="flex:0 0 62px">Time</div><div style="flex:0 0 148px">Candidate</div><div style="flex:0 0 98px">Verdict</div><div style="flex:0 0 132px">Gate</div><div style="flex:1 1 240px;min-width:0">Finding</div>
+</div>
+<sc-for list="{{ rejections }}" as="r" hint-placeholder-count="9">
+<div data-fresh="{{ r.fresh }}" style="display:flex;flex-wrap:wrap;column-gap:12px;row-gap:4px;align-items:baseline;padding:7px 22px;border-bottom:1px solid var(--line2,rgba(18,26,34,.06))">
+<div style="flex:0 0 62px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:400;font-variant-numeric:tabular-nums;color:var(--ink3,#8b98a4)">{{ r.t }}</div>
+<div style="flex:0 0 148px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.005em">{{ r.cand }}</div>
+<div style="{{ r.chip }}">{{ r.verdict }}</div>
+<div style="flex:0 0 132px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink2,#5c6b78)">{{ r.gate }}</div>
+<div style="flex:1 1 240px;min-width:0;font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:400;line-height:1.35;font-variant-numeric:tabular-nums;color:{{ r.reasonColor }};letter-spacing:-.002em">{{ r.reason }}</div>
+</div>
+</sc-for>
+<div style="padding:14px 22px 12px;font-family:'Newsreader',serif;font-size:13.5px;font-weight:300;line-height:1.45;color:var(--ink2,#5c6b78);text-wrap:pretty">{{ streamFoot }}</div>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px;align-items:start">
+<div style="background:var(--card,#fbfcfd);border:1px solid var(--line,rgba(18,26,34,.10));border-radius:3px;box-shadow:var(--shadow,0 1px 2px rgba(18,26,34,.05));padding:20px 22px 14px">
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px">
+<div style="display:flex;flex-direction:column;gap:5px;min-width:0">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3,#8b98a4)">Closed · exit reasons</div>
+<div style="font-family:'Newsreader',serif;font-size:22px;font-weight:400;letter-spacing:-.015em">{{ closedTitle }}</div>
+</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink2,#5c6b78);white-space:nowrap">{{ closedSummary }}</div>
+</div>
+<sc-for list="{{ closed }}" as="c" hint-placeholder-count="5">
+<div style="display:grid;grid-template-columns:minmax(0,54px) minmax(0,1fr) minmax(0,84px);column-gap:12px;row-gap:4px;align-items:baseline;padding:10px 0;border-top:1px solid var(--line2,rgba(18,26,34,.06))">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:400;font-variant-numeric:tabular-nums;color:var(--ink3,#8b98a4)">{{ c.date }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums">{{ c.title }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;color:{{ c.color }}">{{ c.pnl }}</div>
+<div style="grid-column:2;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--ink,#131a20)">{{ c.reason }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:400;font-variant-numeric:tabular-nums;color:var(--ink3,#8b98a4);text-align:right">{{ c.held }} held</div>
+</div>
+</sc-for>
+<sc-if value="{{ noClosed }}" hint-placeholder-val="{{ false }}">
+<div style="border-top:1px solid var(--line2,rgba(18,26,34,.06));padding-top:14px;display:flex;flex-direction:column;gap:12px">
+<div style="font-family:'Newsreader',serif;font-size:14px;font-weight:300;line-height:1.45;color:var(--ink2,#5c6b78);max-width:56ch;text-wrap:pretty">No trade has exited yet. When one does it carries exactly one reason from this set, and nothing else:</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{ reasonSet }}" as="r" hint-placeholder-count="5">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--ink3,#8b98a4);border:1px solid var(--line2,rgba(18,26,34,.10));padding:5px 9px;border-radius:1px">{{ r }}</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</div>
+
+<div style="background:var(--card,#fbfcfd);border:1px solid var(--line,rgba(18,26,34,.10));border-radius:3px;box-shadow:var(--shadow,0 1px 2px rgba(18,26,34,.05));padding:20px 22px 16px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:6px 14px">
+<div style="display:flex;flex-direction:column;gap:5px;min-width:0">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3,#8b98a4)">{{ curveLabel }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ equity }}</div>
+</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap;color:{{ equityDeltaColor }}">{{ equityDelta }}</div>
+</div>
+<div>{{ curve }}</div>
+<div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3,#8b98a4)"><span>{{ curveFrom }}</span><span>{{ curveTo }}</span></div>
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-top:12px;border-top:1px solid var(--line2,rgba(18,26,34,.06))">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3,#8b98a4)">Reconciles as</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink2,#5c6b78)">{{ realisedLine }}</div>
+</div>
+<div style="font-family:'Newsreader',serif;font-size:13px;font-weight:300;line-height:1.45;color:var(--ink2,#5c6b78);padding-top:12px;border-top:1px solid var(--line2,rgba(18,26,34,.06));text-wrap:pretty">The curve is an outcome. The ceilings above are the mandate. Judge the second one.</div>
+</div>
+</div>
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;day0&quot;,&quot;thin&quot;,&quot;full&quot;],&quot;default&quot;:&quot;full&quot;,&quot;tsType&quot;:&quot;'day0'|'thin'|'full'&quot;,&quot;section&quot;:&quot;Data state&quot;},&quot;maxRiskPct&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:3,&quot;min&quot;:1,&quot;max&quot;:6,&quot;step&quot;:0.25,&quot;unit&quot;:&quot;%&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Mandate&quot;},&quot;maxUnderlyingPct&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:5,&quot;min&quot;:2,&quot;max&quot;:10,&quot;step&quot;:0.5,&quot;unit&quot;:&quot;%&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Mandate&quot;},&quot;liveScan&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
+class Component extends DCLogic {
+  state = { theme: null, stage: null, extra: [], fresh: null, live: null, src: null };
+
+  
+  
+
+  // ---- wired to live data; everything below renderVals() is the design, untouched ----
+
+  componentDidMount() {
+    this.load();
+    this.iv = setInterval(() => this.load(), 60000);
+  }
+
+  componentWillUnmount() { clearInterval(this.iv); }
+
+  // No injected cadence. The design's mock pushed a synthetic refusal every seventeen
+  // seconds to look alive; the agent runs on a schedule measured in hours. If nothing has
+  // happened, the stream sits still, which is the honest rendering.
+  queue() { return []; }
+
+  async load() {
+    const j = async (u) => {
+      try { const r = await fetch(u, { headers: { Accept: 'application/json' } }); return await r.json(); }
+      catch (e) { return { state: 'error', message: String(e) }; }
+    };
+    const [dec, pf] = await Promise.all([j('/api/decisions'), j('/api/portfolio')]);
+    this.setState({ live: this.mapLive(dec, pf), src: { dec, pf } });
+  }
+
+  mapLive(dec, pf) {
+    const feed = dec && dec.feed ? dec.feed : null;
+    if (!feed) return null;
+
+    const num = (s) => {
+      if (typeof s === 'number') return s;
+      const n = parseFloat(String(s == null ? '' : s).replace(/[^0-9.\-]/g, ''));
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    // "+772C / -777C" -> the two-leg shape the design renders.
+    const legsOf = (p) => {
+      const parts = String(p.legs || '').split('/').map((x) => x.trim());
+      return parts.slice(0, 2).map((leg, i) => ({
+        side: leg.startsWith('-') ? 'SHORT' : 'LONG',
+        strike: leg.replace(/^[+-]/, ''),
+        px: p.legPrices && p.legPrices[i] != null ? String(p.legPrices[i]) : '',
+        dist: p.legDistances && p.legDistances[i] != null ? String(p.legDistances[i]) : '',
+      }));
+    };
+
+    const positions = (feed.positions || []).map((p) => ({
+      title: p.title,
+      sym: p.sym,
+      kind: p.kind,
+      qty: p.qty + ' ×',
+      dte: p.dte + ' DTE',
+      mlPer: num(p.mlPer),
+      n: p.n,
+      open: num(p.unrealised),
+      legs: legsOf(p),
+      metrics: (p.metrics || []).map((m) => [m.k, m.v]),
+    }));
+
+    // "cost-drag" -> "Cost drag". The design sets these in a small-caps column.
+    const gateLabel = (g) =>
+      String(g || '').replace(/[-_]/g, ' ').replace(/^./, (c) => c.toUpperCase());
+
+    // A verdict states what the mandate concluded; only an order id says a position exists.
+    // The design has no column for that, so an approval that was never placed is relabelled
+    // in the verdict itself -- and its gate becomes the reason no order exists, so the gate
+    // ledger does not file it as a refusal it never was.
+    const unplaced = { TAKEN: 'WOULD TAKE', CLOSED: 'WOULD CLOSE' };
+
+    const rejections = (feed.rejections || []).map((r) => {
+      const approvedOnly = !r.executed && unplaced[r.verdict];
+      return {
+        t: r.t,
+        cand: r.cand,
+        verdict: approvedOnly ? unplaced[r.verdict] : r.verdict,
+        gate: approvedOnly ? (feed.dryRun ? 'Dry run' : 'Not placed') : gateLabel(r.gate),
+        reason: r.reason,
+      };
+    });
+
+    const closed = (feed.closed || []).map((c) => [
+      (c.closedOn || ''), c.title, String(c.reason || '').toUpperCase(), (c.held || ''), num(c.pnl),
+    ]);
+
+    const realised = closed.reduce((a, c) => a + c[4], 0);
+    const openPl = positions.reduce((a, p) => a + p.open, 0);
+    const equity = pf && pf.account ? pf.account.equity : feed.equity;
+
+    // renderVals computes eq = inception + realised + openPl. Solving for inception makes the
+    // displayed equity the broker's figure rather than a reconstruction of it.
+    const inception = equity - realised - openPl;
+
+    const curve = (pf && pf.curve && pf.curve.length ? pf.curve : feed.curve) || [];
+
+    return {
+      inception,
+      day: String(feed.day || '').toLowerCase(),
+      clock: feed.clock,
+      positions,
+      rejections,
+      closed,
+      preGate: feed.preGate || 0,
+      wins: feed.wins || 0,
+      losses: feed.losses || 0,
+      curve,
+      curveFrom: feed.curveFrom,
+      curveTo: feed.curveTo,
+      curveLabel: feed.curveLabel,
+      symbols: feed.symbols || [],
+      blackoutNote: feed.blackoutNote || '',
+      concurrencyNote: feed.concurrencyNote || '',
+      fundingNote: feed.fundingNote || '',
+    };
+  }
+
+  data(stage) {
+    const live = this.state.live;
+    if (live) return live;
+
+    // Before the first fetch resolves, and if it fails. Ceilings still render against a
+    // stated denominator rather than vanishing -- an instrument at rest, not a broken page.
+    return {
+      inception: 100000, day: '', clock: 'connecting',
+      positions: [], rejections: [], closed: [],
+      preGate: 0, wins: 0, losses: 0, curve: [],
+      curveFrom: '', curveTo: '', curveLabel: 'Equity',
+      symbols: [], blackoutNote: '', concurrencyNote: '', fundingNote: '',
+    };
+  }
+
+  theme() { return this.state.theme || this.props.theme || 'light'; }
+  stage() { return this.state.stage || this.props.stage || 'full'; }
+
+  
+
+  vars() {
+    if (this.theme() === 'dark') return [
+      '--bg:#0d1114', '--card:#161b20', '--card2:#1d2429', '--line:rgba(255,255,255,.10)',
+      '--line2:rgba(255,255,255,.055)', '--ink:#eaeff3', '--ink2:#97a4af', '--ink3:#6d7c88',
+      '--acc:#f2a93f', '--warn:#ff7a4d', '--pos:#48cd8e', '--neg:#f0685c', '--live:#2fd68f',
+      '--held:#93b7c8', '--heldbg:rgba(147,183,200,.10)', '--chan:rgba(255,255,255,.05)',
+      '--tick:rgba(255,255,255,.10)', '--wall:rgba(255,255,255,.34)', '--maxbg:rgba(255,255,255,.03)',
+      '--shadow:none', '--grid:rgba(255,255,255,.07)'
+    ].join(';');
+    return [
+      '--bg:#edf0f3', '--card:#fbfcfd', '--card2:#f4f6f8', '--line:rgba(18,26,34,.10)',
+      '--line2:rgba(18,26,34,.06)', '--ink:#131a20', '--ink2:#5c6b78', '--ink3:#8b98a4',
+      '--acc:#a2650c', '--warn:#b4401a', '--pos:#10693f', '--neg:#a52a1f', '--live:#16875a',
+      '--held:#46606f', '--heldbg:rgba(70,96,111,.09)', '--chan:rgba(18,26,34,.055)',
+      '--tick:rgba(18,26,34,.13)', '--wall:rgba(18,26,34,.32)', '--maxbg:transparent',
+      '--shadow:0 1px 2px rgba(18,26,34,.045), 0 14px 30px -22px rgba(18,26,34,.30)',
+      '--grid:rgba(18,26,34,.07)'
+    ].join(';');
+  }
+
+  fillFor(u) {
+    if (u >= 0.8) return 'var(--warn,#b4401a)';
+    if (u >= 0.45) return 'var(--acc,#a2650c)';
+    return 'var(--ink3,#8b98a4)';
+  }
+
+  btn(active, small) {
+    return [
+      "font-family:'IBM Plex Mono',monospace", 'font-size:' + (small ? '9px' : '9.5px'),
+      'font-weight:600', 'letter-spacing:.14em', 'text-transform:uppercase',
+      'padding:' + (small ? '7px 9px 7px 11px' : '7px 11px 7px 13px'), 'cursor:pointer',
+      'user-select:none', 'white-space:nowrap',
+      active ? 'background:var(--ink,#131a20)' : 'background:transparent',
+      active ? 'color:var(--card,#fbfcfd)' : 'color:var(--ink3,#8b98a4)'
+    ].join(';');
+  }
+
+  chip(v) {
+    const base = ["font-family:'IBM Plex Mono',monospace", 'font-size:9px', 'font-weight:600',
+      'letter-spacing:.15em', 'text-transform:uppercase', 'padding:3px 0', 'border-radius:1px',
+      'text-align:center', 'flex:0 0 98px', 'box-sizing:border-box'];
+    if (v === 'REJECTED') base.push('color:var(--held,#46606f)', 'background:var(--heldbg,rgba(70,96,111,.09))',
+      'border:1px solid var(--held,#46606f)');
+    else if (v === 'SKIPPED') base.push('color:var(--ink3,#8b98a4)', 'border:1px dashed var(--line,rgba(18,26,34,.22))');
+    else base.push('color:var(--ink,#131a20)', 'border:1px solid var(--ink,#131a20)');
+    return base.join(';');
+  }
+
+  headStyle(kind) {
+    const base = ["font-family:'IBM Plex Mono',monospace", 'font-size:8.5px', 'font-weight:600',
+      'letter-spacing:.12em', 'text-transform:uppercase', 'white-space:nowrap'];
+    if (kind === 'held') base.push('color:var(--held,#46606f)', 'background:var(--heldbg,rgba(70,96,111,.09))',
+      'border:1px solid var(--held,#46606f)', 'padding:2px 5px', 'border-radius:1px');
+    else base.push('color:var(--ink3,#8b98a4)', 'font-weight:500', 'letter-spacing:.04em', 'text-transform:none', 'font-size:9px');
+    return base.join(';');
+  }
+
+  curveEl(pts, flat) {
+    const W = 460, H = 104;
+    const lo = Math.min(...pts) - (flat ? 900 : 400), hi = Math.max(...pts) + (flat ? 900 : 400);
+    const x = i => pts.length === 1 ? W : (i / (pts.length - 1)) * W;
+    const y = v => H - ((v - lo) / (hi - lo)) * H;
+    const R = React.createElement;
+    const grid = [0, 0.25, 0.5, 0.75, 1].map((f, i) =>
+      R('line', { key: 'g' + i, x1: 0, x2: W, y1: (H * f).toFixed(1), y2: (H * f).toFixed(1), stroke: 'var(--grid)', strokeWidth: 1 }));
+    const d = pts.length === 1
+      ? 'M0 ' + y(pts[0]).toFixed(1) + ' L' + W + ' ' + y(pts[0]).toFixed(1)
+      : pts.map((v, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1)).join(' ');
+    return R('svg', { viewBox: '0 0 ' + W + ' ' + (H + 8), width: '100%', style: { display: 'block', overflow: 'visible' } },
+      grid,
+      R('path', { d, fill: 'none', stroke: 'var(--ink)', strokeWidth: 1.4, strokeLinejoin: 'round', strokeDasharray: pts.length === 1 ? '3 4' : undefined }),
+      R('circle', { cx: W, cy: y(pts[pts.length - 1]), r: 3, fill: pts.length === 1 ? 'var(--ink3)' : 'var(--pos)' })
+    );
+  }
+
+  
+
+  renderVals() {
+    const stage = this.stage();
+    const dark = this.theme() === 'dark';
+    const d = this.data(stage);
+    const riskCeil = this.props.maxRiskPct ?? 3;
+    const expCeil = this.props.maxUnderlyingPct ?? 5;
+    const realised = d.closed.reduce((a, c) => a + c[4], 0);
+    const openPl = d.positions.reduce((a, p) => a + p.open, 0);
+    const eq = d.inception + realised + openPl;
+    const money = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const usd0 = v => '$' + Math.round(v).toLocaleString('en-US');
+    const pct = v => v / eq * 100;
+    const f2 = v => v.toFixed(2) + '%';
+    const dim = 'var(--ink3,#8b98a4)';
+    const ink = 'var(--ink,#131a20)';
+
+    const positions = d.positions.map(p => {
+      const ml = p.mlPer * p.n;
+      return { title: p.title, kind: p.kind, qty: p.qty, dte: p.dte, legs: p.legs,
+        maxLoss: usd0(ml), maxLossPct: f2(pct(ml)),
+        maxLossUnit: p.n + ' × $' + p.mlPer + ' per contract',
+        metrics: [
+          { k: p.metrics[0][0], v: p.metrics[0][1], c: ink },
+          { k: p.metrics[1][0], v: p.metrics[1][1], c: ink },
+          { k: 'open p/l', v: (p.open >= 0 ? '+$' : '−$') + Math.abs(p.open).toLocaleString('en-US'),
+            c: p.open >= 0 ? 'var(--pos,#10693f)' : 'var(--neg,#a52a1f)' },
+          { k: p.metrics[2][0], v: p.metrics[2][1], c: ink }
+        ] };
+    });
+
+    const gatesPos = d.positions.map(p => {
+      const u = pct(p.mlPer * p.n) / riskCeil;
+      return { name: p.title.replace(' / ', '/'), pct: f2(pct(p.mlPer * p.n)),
+        w: Math.min(100, u * 100).toFixed(1) + '%', fill: this.fillFor(u),
+        valColor: u >= 0.8 ? 'var(--warn,#b4401a)' : ink };
+    });
+
+    const bySym = {};
+    d.positions.forEach(p => { bySym[p.sym] = (bySym[p.sym] || 0) + p.mlPer * p.n; });
+    const symRows = (d.symbols || []).map(s => {
+      const held = d.positions.filter(p => p.sym === s.n).length;
+      return {
+        n: s.n,
+        risk: s.blackout ? 0 : (bySym[s.n] || 0),
+        k: s.note || (held ? held + ' position' + (held > 1 ? 's' : '') : 'no position'),
+        blackout: !!s.blackout
+      };
+    });
+    const hatch = 'repeating-linear-gradient(135deg, var(--heldbg,rgba(70,96,111,.09)) 0 5px, transparent 5px 10px)';
+    const gatesSym = symRows.map(s => {
+      const p = pct(s.risk), u = p / expCeil;
+      return {
+        name: s.n, sub: s.k, subColor: s.blackout ? 'var(--held,#46606f)' : dim,
+        pct: s.blackout ? '—' : f2(p),
+        w: s.blackout ? '0%' : Math.min(100, u * 100).toFixed(1) + '%',
+        fill: this.fillFor(u), chan: s.blackout ? hatch : 'var(--chan,rgba(18,26,34,.055))',
+        valColor: s.blackout ? 'var(--held,#46606f)' : (u >= 0.8 ? 'var(--warn,#b4401a)' : ink),
+        head: s.blackout ? 'gate held' : (s.risk ? usd0(eq * expCeil / 100 - s.risk) + ' left' : 'full headroom'),
+        headStyle: this.headStyle(s.blackout ? 'held' : 'plain')
+      };
+    });
+
+    const all = stage === 'full' ? [...this.state.extra, ...d.rejections] : d.rejections;
+    const rejections = all.map(r => ({
+      t: r.t, cand: r.cand, verdict: r.verdict, gate: r.gate, reason: r.reason,
+      chip: this.chip(r.verdict),
+      reasonColor: r.verdict === 'TAKEN' ? ink : 'var(--ink2,#5c6b78)',
+      fresh: this.state.fresh === r.cand + r.t ? '1' : '0'
+    }));
+    const refused = all.filter(r => r.verdict !== 'TAKEN').length;
+    const taken = all.filter(r => r.verdict === 'TAKEN').length;
+
+    const counts = {};
+    all.forEach(r => { if (r.verdict !== 'TAKEN') counts[r.gate] = (counts[r.gate] || 0) + 1; });
+    const maxC = Math.max(1, ...Object.values(counts));
+    const ledger = Object.entries(counts).sort((a, b) => b[1] - a[1])
+      .map(([name, n]) => ({ name: name.toUpperCase(), n: String(n), w: (n / maxC * 100) + '%' }));
+
+    const closed = d.closed.map(c => ({ date: c[0], title: c[1], reason: c[2], held: c[3],
+      pnl: (c[4] >= 0 ? '+$' : '−$') + Math.abs(c[4]).toLocaleString('en-US'),
+      color: c[4] >= 0 ? 'var(--pos,#10693f)' : 'var(--neg,#a52a1f)' }));
+    const nClosed = closed.length;
+    const netClosed = realised;
+
+    const totalRisk = d.positions.reduce((a, p) => a + p.mlPer * p.n, 0);
+    const nPos = d.positions.length;
+
+    const winStat = nClosed === 0
+      ? { label: 'Closed trades', value: '0', note: 'no exit yet · win rate reports at 5', color: dim }
+      : nClosed < 5
+        ? { label: 'Closed trades', value: String(nClosed), note: d.wins + ' won · ' + d.losses + ' lost · rate reports at 5', color: ink }
+        : { label: 'Win rate', value: (d.wins / nClosed * 100).toFixed(1) + '%', note: d.wins + ' won · ' + d.losses + ' lost · ' + nClosed + ' closed', color: ink };
+
+    const daysStat = nClosed === 0
+      ? { label: 'Days to close', value: '—', note: 'reports on first exit', color: dim }
+      : { label: 'Days to close', value: (d.closed.reduce((a, c) => a + parseFloat(c[3]), 0) / nClosed).toFixed(1), note: 'mean holding period, in sessions', color: ink };
+
+    const deltaV = eq - d.inception;
+
+    return {
+      themeVars: this.vars(),
+      eyebrow: 'Autonomous defined-risk agent · ' + d.clock + ' · ' + d.day,
+      stateLine: nPos + (nPos === 1 ? ' position' : ' positions') + ' open · ' + usd0(totalRisk) +
+        ' at risk · ' + f2(pct(totalRisk)) + ' of equity · ' + refused +
+        (refused === 1 ? ' candidate' : ' candidates') + ' refused today',
+      scanLabel: this.props.liveScan === false ? 'scan paused' : 'scanning · 17s',
+      setLight: () => this.setState({ theme: 'light' }),
+      setDark: () => this.setState({ theme: 'dark' }),
+      setDay0: () => this.setState({ stage: 'day0', extra: [], fresh: null }),
+      setThin: () => this.setState({ stage: 'thin', extra: [], fresh: null }),
+      setFull: () => this.setState({ stage: 'full' }),
+      lightBtn: this.btn(!dark), darkBtn: this.btn(dark),
+      b0: this.btn(stage === 'day0', true), b1: this.btn(stage === 'thin', true), b2: this.btn(stage === 'full', true),
+      stats: [
+        { label: 'Equity', value: usd0(eq), size: '24px',
+          note: deltaV === 0 ? (d.fundingNote || '') : (deltaV > 0 ? '+' : '−') + usd0(Math.abs(deltaV)) + ' since funding', color: ink },
+        { label: 'Risk deployed', value: usd0(totalRisk),
+          note: totalRisk === 0 ? 'nothing deployed · every ceiling intact' : f2(pct(totalRisk)) + ' of equity, across ' + nPos + ' spreads',
+          color: totalRisk === 0 ? dim : ink },
+        { label: 'Open positions', value: String(nPos), note: d.concurrencyNote || '', color: nPos === 0 ? dim : ink },
+        { label: 'Refused today', value: String(refused),
+          note: 'against ' + ledger.length + (ledger.length === 1 ? ' gate' : ' distinct gates'), color: 'var(--held,#46606f)' },
+        winStat, daysStat
+      ].map(s => ({ size: '25px', ...s })),
+      riskCeilLabel: riskCeil.toFixed(2) + '%', expCeilLabel: expCeil.toFixed(2) + '%',
+      gatesPos, gatesSym,
+      hasPositions: nPos > 0, noPositions: nPos === 0, noClosed: nClosed === 0,
+      blackoutNote: d.blackoutNote || '',
+      aggLine: usd0(totalRisk) + ' · ' + f2(pct(totalRisk)),
+      posHeading: nPos === 0 ? 'Open positions · none' : 'Open positions · ' + nPos,
+      positions,
+      emptyPosStats: [
+        { k: 'at risk', v: '$0' },
+        { k: 'per-position headroom', v: usd0(eq * riskCeil / 100) },
+        { k: 'candidates seen', v: String(d.preGate + all.length) }
+      ],
+      rejections, ledger,
+      evalLine: (d.preGate + all.length) + ' evaluated\n' + taken + (taken === 1 ? ' taken' : ' taken') +
+        '\n' + refused + ' refused at a gate\n' + d.preGate + ' filtered pre-gate',
+      streamFoot: refused === 1
+        ? 'One refusal so far this session. The stream fills as the scanner works; nothing is dropped from it, including the candidates that pass.'
+        : 'Every line above is a decision the agent can defend. The taken row is the exception, not the point.',
+      closedTitle: nClosed === 0 ? 'Nothing closed yet' : nClosed + (nClosed === 1 ? ' trade, ' : ' trades, ') + new Set(d.closed.map(c => c[2])).size + ' reasons',
+      closedSummary: nClosed === 0 ? '5 reasons defined' : (netClosed >= 0 ? 'net +$' : 'net −$') + Math.abs(netClosed).toLocaleString('en-US') + ' · ' + nClosed + ' closed',
+      closed,
+      reasonSet: ['PIN RISK', 'STOP LOSS', 'TAKE PROFIT', 'TIME STOP', 'COMPETITION FLATTEN'],
+      equity: money(eq),
+      equityDelta: deltaV === 0 ? 'flat · funded today' : (deltaV > 0 ? '+' : '−') + Math.abs(deltaV / d.inception * 100).toFixed(2) + '% since inception',
+      equityDeltaColor: deltaV === 0 ? dim : (deltaV > 0 ? 'var(--pos,#10693f)' : 'var(--neg,#a52a1f)'),
+      curveLabel: d.curveLabel, curveFrom: d.curveFrom, curveTo: d.curveTo,
+      realisedLine: (realised >= 0 ? '+' : '−') + usd0(Math.abs(realised)) + ' realised · ' +
+        (openPl >= 0 ? '+' : '−') + usd0(Math.abs(openPl)) + ' open',
+      curve: this.curveEl([...d.curve, eq], d.curve.length === 0)
+    };
+  }
+}
+</script>
+
+
+</body></html>

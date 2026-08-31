@@ -1,12 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd dashboard && npm install && npm run build",
-  "outputDirectory": "dashboard/dist",
+  "buildCommand": "echo static",
+  "outputDirectory": "dashboard-design",
   "installCommand": "echo skip",
   "framework": null,
-  "functions": {
-    "api/*.js": { "maxDuration": 10 }
-  },
+  "functions": { "api/*.js": { "maxDuration": 10 } },
   "headers": [
     {
       "source": "/api/(.*)",

@@ -269,33 +269,95 @@ self-describing keys, this uses the dashboard's own vocabulary.
   "generatedAt": "2026-08-30T05:12:44Z",   // ISO-8601 UTC
   "day": "Pre-open",                        // "Pre-open" | "Day N of 4" | "Closed"
   "clock": "01:12 ET | 08.30.26",           // ASCII only
+  "dryRun": true,                           // no orders were placed this cycle
   "account": "PA3ILISQPBT4",
   "equity": 100000,
-  "positions": [ FeedPosition ],
-  "rejections": [ FeedRejection ],
-  "closed":    [ FeedClosed ],
-  "preGate": 58,        // contracts examined before any gate ran
-  "wins": 0, "losses": 0,
-  "curve": [ 100000, 100000 ],   // account equity, oldest first
-  "curveFrom": "Inception 08.31", "curveTo": "08.30", "curveLabel": "Account equity",
-  "riskDeployed": 0, "riskCeiling": 3000.00
+  "positions": [],
+  "rejections": [],
+  "closed": [],
+  "symbols": [],
+  "preGate": 58,                            // contracts examined before any gate ran
+  "wins": 0,
+  "losses": 0,
+  "curve": [100000, 100000],                // account equity, oldest first
+  "curveFrom": "Inception 08.31",
+  "curveTo": "08.30",
+  "curveLabel": "Account equity",
+  "riskDeployed": 0,
+  "riskCeiling": 3000.00,
+  "blackoutNote": "",                       // empty when no blackout is in force
+  "concurrencyNote": "no count cap | bounded by the 3 and the 5, max 10 per order",
+  "fundingNote": "funded at $100,000.00"
 }
 ```
 
-**`FeedRejection`** — `{ t, cand, verdict, gate, reason, executed }`. `t` is `HH:MM` Eastern.
-`cand` is `"SPY 772C/777C"` or just the ticker when no spread formed. Same five verdicts as the
-log, and `executed` carries the same meaning and the same warning: do not render a row as a
-position without it.
+### `rejections[]`
 
-The feed object also carries `dryRun`, mirroring the run object.
+```jsonc
+{
+  "t": "01:12",                 // HH:MM Eastern
+  "cand": "SPY 772C/777C",      // or just the ticker when no spread formed
+  "verdict": "TAKEN",           // same five values as the log
+  "gate": "sized",
+  "reason": "delta 0.39 | 2.09:1 | $162.00 max loss | 1.62% of equity",
+  "executed": false             // do NOT render as a position without this
+}
+```
 
-**`FeedPosition`** — `{ sym, title, kind, qty, legs, dte, open, n, mlPer, maxLoss, maxLossPct,
-metrics[] }`. `metrics` is an array of `{ k, v }` where `v` is already formatted for display.
+### `positions[]`
 
-**`FeedClosed`** — `{ sym, title, reason, pnl, win }`. `pnl` is realised dollars, negative for a
-loss. `reason` states what the broker can attest to — when it closed and over how many fills.
-The *why* (which exit stage fired) is recorded live in the decision stream as a `CLOSED` entry
-at the moment it happened; it is not inferred backwards from fills.
+```jsonc
+{
+  "sym": "SPY",
+  "title": "772/777 call debit spread",
+  "kind": "Bull call | defined risk",
+  "qty": 10,
+  "legs": "+772C / -777C",
+  "dte": 4,
+  "open": "$1.62",              // debit paid, per share
+  "n": 10,
+  "mlPer": "$162.00",           // max loss per contract
+  "maxLoss": 1620.00,           // total, in dollars
+  "maxLossPct": 1.62,           // of equity, already x100
+  "metrics": [{ "k": "Mark", "v": "$2.40" }]
+}
+```
+
+### `closed[]`
+
+```jsonc
+{
+  "sym": "SPY",
+  "title": "772C/777C expiring 09.03",
+  "reason": "closed 09.02 14:00 ET over 4 fills",
+  "pnl": 780.00,                // realised dollars, negative for a loss
+  "win": true
+}
+```
+
+`reason` states what the broker can attest to — when it closed and over how many fills. The
+*why* (which exit stage fired) is recorded live in the decision stream as a `CLOSED` entry at
+the moment it happened; it is not inferred backwards from fills.
+
+### `symbols[]`
+
+Which underlyings the exposure panel should show, and whether a gate is holding one shut.
+
+```jsonc
+{
+  "n": "SPY",
+  "note": "no position",        // or "2 positions", or "blackout | earnings 09.04"
+  "blackout": false             // true bars the underlying outright, whatever the exposure
+}
+```
+
+**This list is supplied, not assumed.** The design shipped with a hardcoded SPY/IWM/QQQ
+universe and a QQQ earnings blackout dated 09.04 — fixtures convincing enough to render as
+fact, complete with a hatched "gate held" bar for a rule that did not exist. Render only what
+this array contains. When `blackout` is true, `note` says which event and when.
+
+`blackoutNote` carries the accompanying prose, and is an **empty string when nothing is
+blacked out** — render the note only when it is non-empty.
 
 ### How `closed`, `wins` and `losses` are derived
 

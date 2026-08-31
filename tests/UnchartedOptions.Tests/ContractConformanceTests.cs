@@ -211,7 +211,7 @@ public class ContractConformanceTests
     {
         DashboardFeed feed = DashboardFeedBuilder.Build(
             SampleRun(), [SamplePosition()], [100_000m, 100_780m], [SampleTrade()],
-            contractsExamined: 58, new CompetitionCalendar(),
+            [], "SPY", new RiskMandate(), 58, new CompetitionCalendar(),
             new DateTimeOffset(2026, 8, 31, 13, 35, 0, TimeSpan.Zero));
 
         using JsonDocument doc = JsonDocument.Parse(JsonSerializer.Serialize(feed, DecisionLog.Json));
@@ -227,6 +227,33 @@ public class ContractConformanceTests
     }
 
     /// <summary>
+    /// The reverse direction for the feed. This check was missing, and four undocumented
+    /// fields were added to dashboard.json without a single test noticing -- which is the
+    /// precise drift these tests exist to catch.
+    /// </summary>
+    [Fact]
+    public void Every_feed_field_emitted_is_documented()
+    {
+        DashboardFeed feed = DashboardFeedBuilder.Build(
+            SampleRun(), [SamplePosition()], [100_000m, 100_780m], [SampleTrade()],
+            [], "SPY", new RiskMandate(), 58, new CompetitionCalendar(),
+            new DateTimeOffset(2026, 8, 31, 13, 35, 0, TimeSpan.Zero));
+
+        using JsonDocument doc = JsonDocument.Parse(JsonSerializer.Serialize(feed, DecisionLog.Json));
+
+        HashSet<string> documented = DocumentedFields("## `decisions/dashboard.json`");
+
+        string[] undocumented = EmittedKeys(doc.RootElement)
+            .Where(k => !documented.Contains(k))
+            .OrderBy(k => k, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.True(undocumented.Length == 0,
+            "Emitted in dashboard.json but absent from FRONTEND_CONTRACT.md: "
+            + string.Join(", ", undocumented));
+    }
+
+    /// <summary>
     /// The specific promise the contract makes about nulls, which a consumer rendering a
     /// layout depends on.
     /// </summary>
@@ -234,7 +261,7 @@ public class ContractConformanceTests
     public void No_field_is_ever_null_in_either_payload()
     {
         DashboardFeed feed = DashboardFeedBuilder.Build(
-            SampleRun(), [], [], [], 0, new CompetitionCalendar(),
+            SampleRun(), [], [], [], [], "SPY", new RiskMandate(), 0, new CompetitionCalendar(),
             new DateTimeOffset(2026, 8, 31, 13, 35, 0, TimeSpan.Zero));
 
         foreach (string json in new[]
@@ -297,7 +324,7 @@ public class ContractConformanceTests
     public void Emitted_payloads_are_ascii_only()
     {
         DashboardFeed feed = DashboardFeedBuilder.Build(
-            SampleRun(), [SamplePosition()], [100_000m], [SampleTrade()], 58,
+            SampleRun(), [SamplePosition()], [100_000m], [SampleTrade()], [], "SPY", new RiskMandate(), 58,
             new CompetitionCalendar(), new DateTimeOffset(2026, 8, 31, 13, 35, 0, TimeSpan.Zero));
 
         foreach (string json in new[]

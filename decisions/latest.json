@@ -1,13 +1,13 @@
 {
-  "runId": "20260830T174455Z",
-  "timestamp": "2026-08-30T17:44:55Z",
+  "runId": "20260831T170403Z",
+  "timestamp": "2026-08-31T17:04:03Z",
   "account": "PA3ILISQPBT4",
   "profile": "paper",
   "isCompetition": false,
-  "marketOpen": false,
+  "marketOpen": true,
   "dryRun": true,
   "equity": 100000,
-  "calendarState": "BeforeCompetitionOpens",
+  "calendarState": "OpenAndManage",
   "riskPerTrade": {
     "label": "risk per trade",
     "ceilingPercent": 3.00,
@@ -20,32 +20,10 @@
   "decisions": [
     {
       "underlying": "SPY",
-      "structure": "$10 width",
-      "verdict": "REJECTED",
-      "gate": "liquidity",
-      "finding": "782C quote 10.5 % wide",
-      "executed": false,
-      "orderId": "",
-      "metrics": {
-        "longStrike": 0,
-        "shortStrike": 0,
-        "width": 10,
-        "delta": 0,
-        "debit": 0,
-        "rewardRisk": 0,
-        "costDragPercent": 0,
-        "maxLossDollars": 0,
-        "contracts": 0,
-        "riskDollars": 0,
-        "riskPercent": 0
-      }
-    },
-    {
-      "underlying": "SPY",
       "structure": "$15 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
-      "finding": "787C quote 18.2 % wide",
+      "finding": "783C quote 133.3 % wide",
       "executed": false,
       "orderId": "",
       "metrics": {
@@ -64,24 +42,24 @@
     },
     {
       "underlying": "SPY",
-      "structure": "772C/777C",
+      "structure": "768C/773C",
       "verdict": "TAKEN",
       "gate": "sized",
-      "finding": "delta 0.39 | 2.09:1 | $162.00 max loss | 1.62% of equity",
+      "finding": "delta 0.39 | 2.27:1 | $153.00 max loss | 1.53% of equity",
       "executed": false,
       "orderId": "",
       "metrics": {
-        "longStrike": 772,
-        "shortStrike": 777,
+        "longStrike": 768,
+        "shortStrike": 773,
         "width": 5,
-        "delta": 0.392,
-        "debit": 1.62,
-        "rewardRisk": 2.09,
-        "costDragPercent": 5.2,
-        "maxLossDollars": 162.00,
+        "delta": 0.391,
+        "debit": 1.53,
+        "rewardRisk": 2.27,
+        "costDragPercent": 2.0,
+        "maxLossDollars": 153.00,
         "contracts": 10,
-        "riskDollars": 1620.00,
-        "riskPercent": 1.62
+        "riskDollars": 1530.00,
+        "riskPercent": 1.53
       }
     }
   ]
