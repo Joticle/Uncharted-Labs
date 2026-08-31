@@ -1,10 +1,10 @@
 {
-  "runId": "20260831T193535Z",
-  "timestamp": "2026-08-31T19:35:35Z",
-  "account": "PA3ILISQPBT4",
-  "profile": "paper",
-  "isCompetition": false,
-  "marketOpen": true,
+  "runId": "20260831T222641Z",
+  "timestamp": "2026-08-31T22:26:41Z",
+  "account": "PA3BG520YCTT",
+  "profile": "comp",
+  "isCompetition": true,
+  "marketOpen": false,
   "dryRun": true,
   "equity": 100000,
   "calendarState": "OpenAndManage",
@@ -20,10 +20,32 @@
   "decisions": [
     {
       "underlying": "SPY",
+      "structure": "",
+      "verdict": "SKIPPED",
+      "gate": "market-closed",
+      "finding": "market is closed; next open 2026-09-01 09:30 UTC",
+      "executed": false,
+      "orderId": "",
+      "metrics": {
+        "longStrike": 0,
+        "shortStrike": 0,
+        "width": 0,
+        "delta": 0,
+        "debit": 0,
+        "rewardRisk": 0,
+        "costDragPercent": 0,
+        "maxLossDollars": 0,
+        "contracts": 0,
+        "riskDollars": 0,
+        "riskPercent": 0
+      }
+    },
+    {
+      "underlying": "SPY",
       "structure": "$5 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
-      "finding": "774C quote 10.8 % wide",
+      "finding": "774C quote 12.2 % wide",
       "executed": false,
       "orderId": "",
       "metrics": {
@@ -67,7 +89,7 @@
       "structure": "$15 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
-      "finding": "784C quote 28.6 % wide",
+      "finding": "784C quote 120.0 % wide",
       "executed": false,
       "orderId": "",
       "metrics": {

@@ -3,11 +3,16 @@ name: Trading Agent
 # Runs one evaluation cycle per invocation. The agent is single-shot and holds no state
 # between runs, so a cron schedule and a manual dispatch are interchangeable.
 #
+# A scheduled run trades the competition account for real. A manual dispatch chooses, and
+# defaults to the dev account in dry run, so an absent-minded click cannot reach the judged
+# book.
+#
 # Safety: the competition account cannot be traded before the opening bell. That guard lives
 # in the agent itself (Program.cs refuses --comp --live outside the competition window and
 # exits 2) and there is no flag, input or environment variable in this workflow that can
 # bypass it. The workflow can only choose which account to point at, never whether the guard
-# applies.
+# applies. The agent also refuses to submit into a closed market, which matters here because
+# a scheduled run can arrive well after the time it was booked for.
 
 on:
   schedule:
@@ -36,10 +41,15 @@ on:
 permissions:
   contents: write        # only to commit the decision log back
 
+env:
+  # Scheduled passes are the competition. Dispatches are whatever was asked for.
+  TARGET: ${{ github.event_name == 'schedule' && 'comp' || (github.event.inputs.profile || 'dev') }}
+  LIVE: ${{ github.event_name == 'schedule' && 'true' || (github.event.inputs.live || 'false') }}
+
 concurrency:
   # Never let two cycles evaluate the same account at once: the second would read positions
   # the first has not finished creating and could size against stale exposure.
-  group: trading-agent-${{ github.event.inputs.profile || 'dev' }}
+  group: trading-agent-${{ github.event_name == 'schedule' && 'comp' || (github.event.inputs.profile || 'dev') }}
   cancel-in-progress: false
 
 jobs:
@@ -100,7 +110,6 @@ jobs:
           DEV_SECRET: ${{ secrets.ALPACA_DEV_SECRET }}
           COMP_KEY: ${{ secrets.ALPACA_COMP_KEY }}
           COMP_SECRET: ${{ secrets.ALPACA_COMP_SECRET }}
-          TARGET: ${{ github.event.inputs.profile || 'dev' }}
         run: |
           set -euo pipefail
 
@@ -119,8 +128,6 @@ jobs:
           echo "authenticated profile: $name"
 
       - name: Verify the account is the one we expect
-        env:
-          TARGET: ${{ github.event.inputs.profile || 'dev' }}
         run: |
           set -euo pipefail
           args="--verify"
@@ -129,8 +136,6 @@ jobs:
 
       - name: Run one evaluation cycle
         env:
-          TARGET: ${{ github.event.inputs.profile || 'dev' }}
-          LIVE: ${{ github.event.inputs.live }}
           EXPIRY: ${{ github.event.inputs.expiry }}
           # Earnings dates are not published by Alpaca and are supplied here.
           UNCHARTED_EARNINGS: ${{ vars.UNCHARTED_EARNINGS }}
@@ -144,7 +149,7 @@ jobs:
           if [ "$LIVE" = "true" ]; then args="$args --live"; fi
           if [ -n "$EXPIRY" ]; then args="$args --expiry $EXPIRY"; fi
 
-          echo "running: dotnet run -- $args"
+          echo "running: dotnet run -- $args   (event=${{ github.event_name }}, target=$TARGET, live=$LIVE)"
 
           # Exit 2 is the competition-window guard refusing to trade the judged account
           # outside the contest. That is correct behaviour, not a failure, so the job

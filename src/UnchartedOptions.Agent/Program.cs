@@ -116,6 +116,12 @@ try
             continue;
         }
 
+        if (!clock.IsOpen)
+        {
+            Console.WriteLine("             market closed -- close deferred to the next session");
+            continue;
+        }
+
         OrderSubmission close = await cli.CloseSpreadAsync(
             held.Spread, held.Contracts, Math.Max(0.01m, held.CurrentValue), dryRun: !live);
 
@@ -174,7 +180,23 @@ try
 
     bool barred = false;
 
-    if (blackoutVerdict.IsBlackedOut)
+    // A shut market bars everything. The clock was read and displayed but never enforced,
+    // which is harmless in a dry run and not once orders are real: GitHub's scheduled runs
+    // are best-effort and have already arrived four hours late once, so a pass nominally
+    // inside the session can fire after the close. A day limit order submitted then is
+    // queued into the next session and fills on terms nothing here evaluated.
+    if (!clock.IsOpen)
+    {
+        barred = true;
+        decisions.Add(new Decision
+        {
+            Underlying = underlying,
+            Verdict = Verdict.SKIPPED,
+            Gate = "market-closed",
+            Finding = $"market is closed; next open {clock.NextOpen:yyyy-MM-dd HH:mm} UTC",
+        });
+    }
+    else if (blackoutVerdict.IsBlackedOut)
     {
         barred = true;
         decisions.Add(new Decision

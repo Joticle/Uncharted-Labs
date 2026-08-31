@@ -1,22 +1,30 @@
 {
-  "generatedAt": "2026-08-31T19:35:35Z",
+  "generatedAt": "2026-08-31T22:26:41Z",
   "day": "Day 1 of 4",
-  "clock": "15:35 ET | 08.31.26",
+  "clock": "18:26 ET | 08.31.26",
   "dryRun": true,
-  "account": "PA3ILISQPBT4",
+  "account": "PA3BG520YCTT",
   "equity": 100000,
   "positions": [],
   "rejections": [
     {
-      "t": "15:35",
-      "cand": "SPY $5 width",
-      "verdict": "REJECTED",
-      "gate": "liquidity",
-      "reason": "774C quote 10.8 % wide",
+      "t": "18:26",
+      "cand": "SPY",
+      "verdict": "SKIPPED",
+      "gate": "market-closed",
+      "reason": "market is closed; next open 2026-09-01 09:30 UTC",
       "executed": false
     },
     {
-      "t": "15:35",
+      "t": "18:26",
+      "cand": "SPY $5 width",
+      "verdict": "REJECTED",
+      "gate": "liquidity",
+      "reason": "774C quote 12.2 % wide",
+      "executed": false
+    },
+    {
+      "t": "18:26",
       "cand": "SPY $10 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
@@ -24,21 +32,21 @@
       "executed": false
     },
     {
-      "t": "15:35",
+      "t": "18:26",
       "cand": "SPY $15 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
-      "reason": "784C quote 28.6 % wide",
+      "reason": "784C quote 120.0 % wide",
       "executed": false
     }
   ],
   "closed": [],
-  "preGate": 60,
+  "preGate": 59,
   "wins": 0,
   "losses": 0,
   "curve": [
-    100000,
-    100000,
+    0,
+    0,
     100000,
     100000
   ],
