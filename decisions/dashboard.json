@@ -1,57 +1,41 @@
 {
-  "generatedAt": "2026-08-31T22:26:41Z",
-  "day": "Day 1 of 4",
-  "clock": "18:26 ET | 08.31.26",
-  "dryRun": true,
-  "account": "PA3BG520YCTT",
+  "generatedAt": "2026-09-01T13:33:32Z",
+  "day": "Day 2 of 4",
+  "clock": "09:33 ET | 09.01.26",
+  "dryRun": false,
+  "account": "PA3ILISQPBT4",
   "equity": 100000,
   "positions": [],
   "rejections": [
     {
-      "t": "18:26",
-      "cand": "SPY",
-      "verdict": "SKIPPED",
-      "gate": "market-closed",
-      "reason": "market is closed; next open 2026-09-01 09:30 UTC",
-      "executed": false
-    },
-    {
-      "t": "18:26",
-      "cand": "SPY $5 width",
-      "verdict": "REJECTED",
-      "gate": "liquidity",
-      "reason": "774C quote 12.2 % wide",
-      "executed": false
-    },
-    {
-      "t": "18:26",
-      "cand": "SPY $10 width",
-      "verdict": "REJECTED",
-      "gate": "liquidity",
-      "reason": "779C quote 11.8 % wide",
-      "executed": false
-    },
-    {
-      "t": "18:26",
+      "t": "09:33",
       "cand": "SPY $15 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
-      "reason": "784C quote 120.0 % wide",
+      "reason": "779C quote 22.2 % wide",
+      "executed": false
+    },
+    {
+      "t": "09:33",
+      "cand": "SPY 764C/769C",
+      "verdict": "TAKEN",
+      "gate": "sized",
+      "reason": "delta 0.40 | 2.25:1 | $154.00 max loss | 1.54% of equity",
       "executed": false
     }
   ],
   "closed": [],
-  "preGate": 59,
+  "preGate": 63,
   "wins": 0,
   "losses": 0,
   "curve": [
-    0,
-    0,
+    100000,
+    100000,
     100000,
     100000
   ],
   "curveFrom": "Inception 08.31",
-  "curveTo": "08.31",
+  "curveTo": "09.01",
   "curveLabel": "Account equity",
   "riskDeployed": 0,
   "riskCeiling": 3000.00,
