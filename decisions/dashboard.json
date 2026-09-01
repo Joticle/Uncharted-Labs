@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-09-01T13:33:32Z",
+  "generatedAt": "2026-09-01T13:41:50Z",
   "day": "Day 2 of 4",
-  "clock": "09:33 ET | 09.01.26",
+  "clock": "09:41 ET | 09.01.26",
   "dryRun": false,
-  "account": "PA3ILISQPBT4",
+  "account": "PA3BG520YCTT",
   "equity": 100000,
   "positions": [],
   "rejections": [
     {
-      "t": "09:33",
+      "t": "09:41",
       "cand": "SPY $15 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
@@ -16,20 +16,20 @@
       "executed": false
     },
     {
-      "t": "09:33",
+      "t": "09:41",
       "cand": "SPY 764C/769C",
       "verdict": "TAKEN",
       "gate": "sized",
-      "reason": "delta 0.40 | 2.25:1 | $154.00 max loss | 1.54% of equity",
+      "reason": "delta 0.39 | 2.36:1 | $149.00 max loss | 1.49% of equity",
       "executed": false
     }
   ],
   "closed": [],
-  "preGate": 63,
+  "preGate": 64,
   "wins": 0,
   "losses": 0,
   "curve": [
-    100000,
+    0,
     100000,
     100000,
     100000
