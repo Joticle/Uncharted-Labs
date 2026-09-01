@@ -125,6 +125,8 @@ try
         OrderSubmission close = await cli.CloseSpreadAsync(
             held.Spread, held.Contracts, Math.Max(0.01m, held.CurrentValue), dryRun: !live);
 
+        decisions[exitIndex] = DecisionLog.Executed(exitRecord, close.OrderId);
+
         Console.WriteLine(close.WasDryRun
             ? $"             close validated ({decision.Reason})"
             : $"             CLOSED, order {close.OrderId}");
@@ -249,15 +251,19 @@ try
 
         // A candidate that cleared every gate but is barred by the window is recorded as
         // skipped rather than taken -- the sizing stands, the order does not.
-        decisions.Add(barred && sizing.ShouldTrade
+        Decision sizedRecord = barred && sizing.ShouldTrade
             ? Barred(underlying, spread, sizing, candidate.LongLegDelta, account,
                      blackoutVerdict.IsBlackedOut ? "blackout" : "competition-calendar")
-            : Sized(underlying, spread, chosen, sizing, account, candidate.LongLegDelta));
+            : Sized(underlying, spread, chosen, sizing, account, candidate.LongLegDelta);
+        int sizedIndex = decisions.Count;
+        decisions.Add(sizedRecord);
 
         if (!barred && sizing.ShouldTrade && account.CanTradeSpreads)
         {
             OrderSubmission submission = await cli.SubmitSpreadAsync(
                 spread, sizing.Contracts, spread.NetDebit, dryRun: !live);
+
+            decisions[sizedIndex] = DecisionLog.Executed(sizedRecord, submission.OrderId);
 
             Console.WriteLine(submission.WasDryRun
                 ? "Broker validated the order. Nothing was placed."

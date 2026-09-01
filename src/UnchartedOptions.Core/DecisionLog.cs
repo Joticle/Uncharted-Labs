@@ -184,6 +184,25 @@ public static class DecisionLog
             JsonSerializer.Serialize(run, Pretty));
     }
 
+    /// <summary>
+    /// Promotes a decision to executed, on the strength of a broker order id and nothing else.
+    /// </summary>
+    /// <remarks>
+    /// A free function rather than an inline expression at the call site. The inline version
+    /// was written three times and silently failed to apply every time -- the edit did not
+    /// match, the build stayed green because nothing referenced what it would have added, and
+    /// a filled order was recorded as hypothetical. A named seam can be asserted on both by a
+    /// unit test and by a guard that checks the call site still exists.
+    /// </remarks>
+    public static Decision Executed(Decision decision, string? orderId)
+    {
+        ArgumentNullException.ThrowIfNull(decision);
+
+        return string.IsNullOrWhiteSpace(orderId)
+            ? decision
+            : decision with { Executed = true, OrderId = orderId };
+    }
+
     /// <summary>Builds the per-underlying exposure gates from live positions.</summary>
     public static IReadOnlyList<GateUtilisation> ExposureGates(
         IReadOnlyList<OpenPosition> positions, decimal equity, RiskMandate mandate)
