@@ -96,12 +96,20 @@ public class SpreadReconstructionTests
         Assert.Equal("SPY", s.Spread.Underlying);
     }
 
+    /// <summary>
+    /// Previously an unpairable leg was skipped and the book silently under-reported. This
+    /// agent only ever opens verticals, so a lone leg means something happened that nothing
+    /// evaluated -- a partial fill, an assignment, a leg closed by hand. It stops the run.
+    /// </summary>
     [Fact]
-    public void An_unmatched_long_leg_is_left_alone_rather_than_treated_as_a_spread()
+    public void An_unmatched_long_leg_stops_the_reconstruction()
     {
         List<OpenPosition> legs = [Leg("SPY260903C00772000", 7m, 8_400m, 10_500m)];
 
-        Assert.Empty(SpreadReconstruction.FromLegs(legs, NoFills, Opened));
+        LegConservationException ex = Assert.Throws<LegConservationException>(
+            () => SpreadReconstruction.FromLegs(legs, NoFills, Opened));
+
+        Assert.Contains("SPY260903C00772000", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -113,7 +121,10 @@ public class SpreadReconstructionTests
             Leg("SPY260918C00777000", -7m, -7_266m, -8_820m),
         ];
 
-        Assert.Empty(SpreadReconstruction.FromLegs(legs, NoFills, Opened));
+        // Two groups, each holding one leg that cannot form a vertical. Neither is silently
+        // dropped now.
+        Assert.Throws<LegConservationException>(
+            () => SpreadReconstruction.FromLegs(legs, NoFills, Opened));
     }
 
     [Fact]

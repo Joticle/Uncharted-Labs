@@ -679,36 +679,59 @@ class Component extends DCLogic {
 
       const out = [];
       groups.forEach((legs) => {
-        const lng = legs.find((l) => l.qty > 0);
-        const sht = legs.find((l) => l.qty < 0);
-        if (!lng || !sht) return;
+        // Mirrors SpreadReconstruction on the agent side. The broker aggregates by symbol, so
+        // three lots sharing a long strike arrive as one leg of thirty contracts against two
+        // short strikes. Pairing only the first short invents a single oversized position and
+        // hides the rest of the book.
+        //
+        // Narrowest short first, against the highest long strike beneath it. A chosen
+        // convention, not a recovered fact: the broker keeps no record of which long contracts
+        // were bought alongside which short.
+        const longs = legs.filter((l) => l.qty > 0).map((l) => ({
+          ...l, left: Math.abs(l.qty),
+          basisPer: l.costBasis / Math.abs(l.qty), valuePer: l.marketValue / Math.abs(l.qty),
+        })).sort((a, b) => a.strike - b.strike);
 
-        const n = Math.abs(lng.qty);
-        const shares = n * 100;
-        const debitPerShare = (lng.costBasis + sht.costBasis) / shares;
-        const unrealised = legs.reduce((a, l) => a + l.unrealizedPl, 0);
-        const markPerShare = (lng.marketValue + sht.marketValue) / shares;
-        const dte = Math.max(0, Math.round((Date.parse(lng.expiry + 'T20:00:00Z') - Date.now()) / 86400000));
-        const px = (l) => (Math.abs(l.costBasis) / (Math.abs(l.qty) * 100)).toFixed(2);
+        const shorts = legs.filter((l) => l.qty < 0).map((l) => ({
+          ...l, left: Math.abs(l.qty),
+          basisPer: l.costBasis / Math.abs(l.qty), valuePer: l.marketValue / Math.abs(l.qty),
+        })).sort((a, b) => a.strike - b.strike);
 
-        out.push({
-          title: lng.underlying + ' ' + lng.strike + 'C / ' + sht.strike + 'C',
-          sym: lng.underlying,
-          kind: 'call debit',
-          qty: n + ' ×',
-          dte: dte + ' DTE',
-          mlPer: Math.round(debitPerShare * 100),
-          n,
-          open: Math.round(unrealised),
-          legs: [
-            { side: 'LONG', strike: lng.strike + 'C', px: px(lng), dist: '' },
-            { side: 'SHORT', strike: sht.strike + 'C', px: px(sht), dist: '' },
-          ],
-          metrics: [
-            ['net debit', debitPerShare.toFixed(2)],
-            ['mark', markPerShare.toFixed(2)],
-            ['max gain', '$' + Math.round((sht.strike - lng.strike - debitPerShare) * shares).toLocaleString('en-US')],
-          ],
+        shorts.forEach((sh) => {
+          while (sh.left > 0) {
+            const lg = longs.filter((l) => l.left > 0 && l.strike < sh.strike)
+              .sort((a, b) => b.strike - a.strike)[0];
+            if (!lg) break;
+
+            const n = Math.min(lg.left, sh.left);
+            lg.left -= n; sh.left -= n;
+
+            const debitPerShare = (lg.basisPer + sh.basisPer) / 100;
+            const markPerShare = (lg.valuePer + sh.valuePer) / 100;
+            const unrealised = (lg.unrealizedPl / Math.abs(lg.qty) + sh.unrealizedPl / Math.abs(sh.qty)) * n;
+            const dte = Math.max(0, Math.round((Date.parse(lg.expiry + 'T20:00:00Z') - Date.now()) / 86400000));
+            const px = (l) => Math.abs(l.basisPer / 100).toFixed(2);
+
+            out.push({
+              title: lg.underlying + ' ' + lg.strike + 'C / ' + sh.strike + 'C',
+              sym: lg.underlying,
+              kind: 'call debit',
+              qty: n + ' ×',
+              dte: dte + ' DTE',
+              mlPer: Math.round(debitPerShare * 100),
+              n,
+              open: Math.round(unrealised),
+              legs: [
+                { side: 'LONG', strike: lg.strike + 'C', px: px(lg), dist: '' },
+                { side: 'SHORT', strike: sh.strike + 'C', px: px(sh), dist: '' },
+              ],
+              metrics: [
+                ['net debit', debitPerShare.toFixed(2)],
+                ['mark', markPerShare.toFixed(2)],
+                ['max gain', '$' + Math.round((sh.strike - lg.strike - debitPerShare) * n * 100).toLocaleString('en-US')],
+              ],
+            });
+          }
         });
       });
       return out;
