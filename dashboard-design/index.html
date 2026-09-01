@@ -617,13 +617,32 @@ class Component extends DCLogic {
     // to it supplies the accumulated stream.
     const days = this.state.days && this.state.days.length ? this.state.days : this.buildDays(dec, pf);
     const cp = (typeof stageIndex === 'number' && days[stageIndex]) ? days[stageIndex] : null;
-    const asOf = cp ? cp.runs[cp.runs.length - 1] : null;
+
+    // The most recent checkpoint is the live view, so it reads the broker. Only an earlier
+    // checkpoint replays the log -- the broker has no memory of what it held on Sunday, and
+    // the log has no knowledge of what filled since the last cycle.
+    const isLatest = !cp || cp === days.filter(Boolean)[days.filter(Boolean).length - 1];
+    const asOf = (cp && !isLatest) ? cp.runs[cp.runs.length - 1] : null;
     const accumulated = cp ? cp.upto.flatMap((d) => d.runs) : null;
 
     const num = (s) => {
       if (typeof s === 'number') return s;
       const n = parseFloat(String(s == null ? '' : s).replace(/[^0-9.\-]/g, ''));
       return Number.isFinite(n) ? n : 0;
+    };
+
+    // SPY260903C00764000 -> { underlying, expiry, strike }. Mirrors OccSymbol on the agent
+    // side: a fixed 15-character suffix, and whatever precedes it is the root.
+    const occ = (sym) => {
+      const s = String(sym || '');
+      if (s.length <= 15) return null;
+      const tail = s.slice(-15);
+      if (!/^\d{6}[CP]\d{8}$/.test(tail)) return null;
+      return {
+        underlying: s.slice(0, -15),
+        expiry: '20' + tail.slice(0, 2) + '-' + tail.slice(2, 4) + '-' + tail.slice(4, 6),
+        strike: Number(tail.slice(7)) / 1000,
+      };
     };
 
     // "+772C / -777C" -> the two-leg shape the design renders.
@@ -637,18 +656,73 @@ class Component extends DCLogic {
       }));
     };
 
-    const positions = (feed.positions || []).map((p) => ({
-      title: p.title,
-      sym: p.sym,
-      kind: p.kind,
-      qty: p.qty + ' ×',
-      dte: p.dte + ' DTE',
-      mlPer: num(p.mlPer),
-      n: p.n,
-      open: num(p.unrealised),
-      legs: legsOf(p),
-      metrics: (p.metrics || []).map((m) => [m.k, m.v]),
-    }));
+    // Positions come from the broker, not from the log. The log records what the agent
+    // decided; only the account says what it holds. The run that opens a position reads
+    // positions before placing the order, so a log-sourced panel is a cycle behind by
+    // construction -- and on 1 Sep it showed an empty book against two filled orders.
+    //
+    // A replayed checkpoint keeps the log's snapshot: that is what was true then, and the
+    // broker has no memory of it.
+    const brokerLegs = (pf && Array.isArray(pf.positions) ? pf.positions : [])
+      .filter((l) => l.assetClass === 'us_option' && occ(l.symbol));
+
+    // Same pairing rule as the agent: group by underlying and expiry, long leg positive,
+    // short leg negative. Netting one leg alone reports a spread as two unrelated trades.
+    const spreadsFromBroker = () => {
+      const groups = new Map();
+      brokerLegs.forEach((l) => {
+        const o = occ(l.symbol);
+        const k = o.underlying + '|' + o.expiry;
+        if (!groups.has(k)) groups.set(k, []);
+        groups.get(k).push({ ...l, ...o });
+      });
+
+      const out = [];
+      groups.forEach((legs) => {
+        const lng = legs.find((l) => l.qty > 0);
+        const sht = legs.find((l) => l.qty < 0);
+        if (!lng || !sht) return;
+
+        const n = Math.abs(lng.qty);
+        const shares = n * 100;
+        const debitPerShare = (lng.costBasis + sht.costBasis) / shares;
+        const unrealised = legs.reduce((a, l) => a + l.unrealizedPl, 0);
+        const markPerShare = (lng.marketValue + sht.marketValue) / shares;
+        const dte = Math.max(0, Math.round((Date.parse(lng.expiry + 'T20:00:00Z') - Date.now()) / 86400000));
+        const px = (l) => (Math.abs(l.costBasis) / (Math.abs(l.qty) * 100)).toFixed(2);
+
+        out.push({
+          title: lng.underlying + ' ' + lng.strike + 'C / ' + sht.strike + 'C',
+          sym: lng.underlying,
+          kind: 'call debit',
+          qty: n + ' ×',
+          dte: dte + ' DTE',
+          mlPer: Math.round(debitPerShare * 100),
+          n,
+          open: Math.round(unrealised),
+          legs: [
+            { side: 'LONG', strike: lng.strike + 'C', px: px(lng), dist: '' },
+            { side: 'SHORT', strike: sht.strike + 'C', px: px(sht), dist: '' },
+          ],
+          metrics: [
+            ['net debit', debitPerShare.toFixed(2)],
+            ['mark', markPerShare.toFixed(2)],
+            ['max gain', '$' + Math.round((sht.strike - lng.strike - debitPerShare) * shares).toLocaleString('en-US')],
+          ],
+        });
+      });
+      return out;
+    };
+
+    const positions = asOf
+      ? (feed.positions || []).map((p) => ({
+          title: p.title, sym: p.sym, kind: p.kind,
+          qty: p.qty + ' ×', dte: p.dte + ' DTE',
+          mlPer: num(p.mlPer), n: p.n, open: num(p.unrealised),
+          legs: legsOf(p),
+          metrics: (p.metrics || []).map((m) => [m.k, m.v]),
+        }))
+      : spreadsFromBroker();
 
     // "cost-drag" -> "Cost drag". The design sets these in a small-caps column.
     const gateLabel = (g) =>
@@ -686,7 +760,8 @@ class Component extends DCLogic {
 
     const realised = closed.reduce((a, c) => a + c[4], 0);
     const openPl = positions.reduce((a, p) => a + p.open, 0);
-    const equity = asOf ? asOf.equity : (pf && pf.account ? pf.account.equity : feed.equity);
+    const equity = asOf ? asOf.equity
+      : (pf && pf.account && Number.isFinite(pf.account.equity) ? pf.account.equity : feed.equity);
 
     // renderVals computes eq = inception + realised + openPl. Solving for inception makes the
     // displayed equity the broker's figure rather than a reconstruction of it.
