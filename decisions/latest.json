@@ -10,7 +10,7 @@
   "calendarState": "OpenAndManage",
   "riskPerTrade": {
     "label": "risk per trade",
-    "ceilingPercent": 3.00,
+    "ceilingPercent": 3.0,
     "ceilingDollars": 3000.58,
     "deployedDollars": 1490,
     "deployedPercent": 1.49,
@@ -19,7 +19,7 @@
   "symbolExposure": [
     {
       "label": "SPY",
-      "ceilingPercent": 5.00,
+      "ceilingPercent": 5.0,
       "ceilingDollars": 5000.98,
       "deployedDollars": 1490,
       "deployedPercent": 1.49,
@@ -43,9 +43,9 @@
         "debit": 1.49,
         "rewardRisk": 2.36,
         "costDragPercent": 0,
-        "maxLossDollars": 149.00,
+        "maxLossDollars": 149.0,
         "contracts": 10,
-        "riskDollars": 1490.00,
+        "riskDollars": 1490.0,
         "riskPercent": 1.49
       }
     },
@@ -109,9 +109,9 @@
         "debit": 1.53,
         "rewardRisk": 2.27,
         "costDragPercent": 0.7,
-        "maxLossDollars": 153.00,
+        "maxLossDollars": 153.0,
         "contracts": 10,
-        "riskDollars": 1530.00,
+        "riskDollars": 1530.0,
         "riskPercent": 1.53
       }
     }

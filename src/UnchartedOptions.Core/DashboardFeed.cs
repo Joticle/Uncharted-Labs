@@ -233,15 +233,28 @@ public static class DashboardFeedBuilder
               + "-- the channel stays empty by rule, not by circumstance.";
     }
 
+    /// <summary>
+    /// The contest phase, read from the same calendar the gates read.
+    /// </summary>
+    /// <remarks>
+    /// Derived from <see cref="CompetitionCalendar.PermissionAt"/> rather than from arithmetic
+    /// on dates, so the header cannot disagree with the gates. Counting calendar days alone
+    /// said "Day 4 of 4" for four hours after the Thursday close -- P&amp;L already measured,
+    /// the calendar already reporting FlattenAll, and the header still describing a session in
+    /// progress. Two clocks telling a judge different things about the same moment.
+    /// </remarks>
     private static string DayLabel(CompetitionCalendar calendar, DateTimeOffset now)
     {
-        if (now < calendar.TradingOpens)
-        {
-            return "Pre-open";
-        }
+        int day = Math.Clamp((int)(now.Date - calendar.TradingOpens.Date).TotalDays + 1, 1, 4);
 
-        int day = (int)(now.Date - calendar.TradingOpens.Date).TotalDays + 1;
-        return day is >= 1 and <= 4 ? $"Day {day} of 4" : "Closed";
+        return calendar.PermissionAt(now) switch
+        {
+            TradingPermission.BeforeCompetitionOpens => "Pre-open",
+            TradingPermission.OpenAndManage => $"Day {day} of 4",
+            TradingPermission.ManageOnly => $"Day {day} of 4",
+            TradingPermission.FlattenAll => "P&L measured",
+            _ => "Closed",
+        };
     }
 
     private static FeedPosition ToFeed(SpreadPosition p, decimal equity, DateTimeOffset now)

@@ -248,7 +248,14 @@ Performance lives in a third file, **`decisions/dashboard.json`**, written by th
 - New `gate` values and `calendarState` values may appear. Do not exhaustively switch.
 - `timestamp` is always ISO-8601 UTC with a trailing `Z`.
 - Numbers are JSON numbers, never strings. Money is rounded to 2 decimal places, `delta` to 3.
-- `decisions.jsonl` is append-only. A line, once written, is never edited or removed.
+- `decisions.jsonl` is append-only in normal operation. A line is never edited to change what
+  the agent decided.
+  - One documented exception: on 1 Sep 2026 two records were corrected in place. The agent had
+    failed to capture the broker's order id, so two filled orders were recorded as
+    `executed: false`. Each was repaired against `alpaca order get` after matching on account,
+    structure, contract count, debit and fill time, and the correction is described in the
+    commit. A record known to be false about a filled order is a worse defect than an edit that
+    makes it true.
 
 ## Worked sample
 
@@ -267,7 +274,7 @@ self-describing keys, this uses the dashboard's own vocabulary.
 ```jsonc
 {
   "generatedAt": "2026-08-30T05:12:44Z",   // ISO-8601 UTC
-  "day": "Pre-open",                        // "Pre-open" | "Day N of 4" | "Closed"
+  "day": "Day 2 of 4",                      // see the phase table below
   "clock": "01:12 ET | 08.30.26",           // ASCII only
   "dryRun": true,                           // no orders were placed this cycle
   "account": "PA3ILISQPBT4",
