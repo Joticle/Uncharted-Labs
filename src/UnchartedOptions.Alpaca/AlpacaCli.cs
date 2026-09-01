@@ -209,6 +209,34 @@ public sealed class AlpacaCli
     }
 
     /// <summary>
+    /// Closes one option leg outright, by symbol.
+    /// </summary>
+    /// <remarks>
+    /// Deliberately not used to unwind a spread -- doing that leg by leg opens a window in
+    /// which the long has been sold and the short has not, which is a naked short call. This
+    /// exists for the one case where spreads cannot be formed at all: reconstruction has
+    /// refused the book, and the contest calendar still demands everything be flat.
+    /// <para>
+    /// The caller must close short legs before long ones. Buying back the shorts first leaves
+    /// a long-only book, whose loss is bounded by premium already paid; selling the longs
+    /// first leaves the shorts uncovered.
+    /// </para>
+    /// <para>
+    /// <c>position close</c> has no dry-run mode, so this is never called outside a live run.
+    /// </para>
+    /// </remarks>
+    public async Task<string> ClosePositionAsync(string symbol, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(symbol);
+
+        using JsonDocument doc = await _runner
+            .RunAsync(["position", "close", "--symbol-or-asset-id", symbol], ct)
+            .ConfigureAwait(false);
+
+        return ReadString(doc.RootElement, "id") ?? string.Empty;
+    }
+
+    /// <summary>
     /// Unwinds a spread as a single multi-leg order.
     /// </summary>
     /// <param name="limitPrice">

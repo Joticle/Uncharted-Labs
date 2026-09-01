@@ -140,6 +140,16 @@ worth rendering. Only the positions are hypothetical.
 carries the exit stage — `PinRisk`, `StopLoss`, `TakeProfit`, `TimeStop`, `CompetitionFlatten`
 or `None` — rather than an entry gate.
 
+Two gates describe the agent refusing to report rather than refusing to trade:
+
+- **`reconstruction-halt`** — the open positions could not be accounted for, so the agent
+  stopped rather than render a book that differs from the account. New entries are blocked.
+  The `finding` names the legs that could not be paired.
+- **`degraded-flatten`** — the contest required everything flat while the book was in that
+  state, so legs were closed directly, shorts before longs. Carries an `orderId`.
+
+A run containing `reconstruction-halt` is showing a fault, not a quiet day.
+
 **`REJECTED` is the hero content, not a failure.** It is the evidence the mandate is enforced.
 Do not style it as an error state.
 
@@ -156,7 +166,8 @@ Guard on `structure !== ""` before rendering it as a strike pair.
 Free-form string, but the current set is:
 
 `sized` · `cost-drag` · `reward-floor` · `liquidity` · `no-short-leg` · `delta-band` ·
-`malformed-spread` · `blackout` · `competition-calendar` · `RiskPerTrade` · `SymbolExposure` ·
+`malformed-spread` · `blackout` · `competition-calendar` · `market-closed` ·
+`reconstruction-halt` · `degraded-flatten` · `RiskPerTrade` · `SymbolExposure` ·
 `Affordability` · `OrderCeiling` · `BelowMinimumSize`
 
 Treat it as an opaque label — display it, don't branch on it exhaustively. New gates get added.

@@ -92,14 +92,77 @@ try
         ? await cli.GetFillTimesAsync()
         : new Dictionary<string, DateTimeOffset>();
 
-    IReadOnlyList<SpreadPosition> heldSpreads = SpreadReconstruction.FromLegs(open, fills, now);
+    // Reconstruction refuses a book it cannot account for. That must stop new entries --
+    // a stray leg means something happened that nothing evaluated -- but it must never
+    // stop the close. The throw used to sit upstream of the ladder, the close and the log
+    // write, so an unpairable leg on Thursday would have blocked the flatten and left the
+    // dashboard showing the previous cycle with no sign of failure.
+    IReadOnlyList<SpreadPosition> heldSpreads = [];
+    string? reconstructionFault = null;
+
+    try
+    {
+        heldSpreads = SpreadReconstruction.FromLegs(open, fills, now);
+    }
+    catch (LegConservationException ex)
+    {
+        reconstructionFault = ex.Message;
+        Console.Error.WriteLine($"HALTED: {ex.Message}");
+
+        decisions.Add(new Decision
+        {
+            Underlying = underlying,
+            Verdict = Verdict.SKIPPED,
+            Gate = "reconstruction-halt",
+            Finding = ex.Message,
+        });
+    }
     ExitPolicy exitPolicy = new();
+
 
     // The contest calendar constrains the judged account only. The dev account exists to be
     // rehearsed against outside contest hours, so applying contest timing to it would block
     // the one thing it is for. The hard refusal on --comp --live above is unaffected.
     CompetitionCalendar? activeCalendar =
+
         profile.IsCompetition || config.SimulatedNow is not null ? calendar : null;
+
+    // Degraded flatten. Reconstruction has refused the book, so no spread can be formed
+    // and the ladder has nothing to evaluate -- but the contest still requires everything
+    // flat, and a leg left open through settlement is the outcome the whole design exists
+    // to prevent. Legs are closed directly, shorts before longs: buying the shorts back
+    // first leaves a long-only book whose loss is bounded by premium already paid, while
+    // selling the longs first would leave the shorts uncovered.
+    if (reconstructionFault is not null && activeCalendar is not null && clock.IsOpen
+        && activeCalendar.PermissionAt(now) is TradingPermission.FlattenAll or TradingPermission.Closed)
+    {
+        IEnumerable<OpenPosition> shortsFirst = open
+            .Where(l => l.IsOption)
+            .OrderBy(l => l.Quantity > 0);
+
+        foreach (OpenPosition leg in shortsFirst)
+        {
+            string side = leg.Quantity > 0 ? "long" : "short";
+
+            if (!live)
+            {
+                Console.WriteLine($"             would close {side} {leg.Symbol} x{Math.Abs(leg.Quantity)}");
+                continue;
+            }
+
+            string orderId = await cli.ClosePositionAsync(leg.Symbol);
+            Console.WriteLine($"             closed {side} {leg.Symbol} x{Math.Abs(leg.Quantity)} order {orderId}");
+
+            decisions.Add(DecisionLog.Executed(new Decision
+            {
+                Underlying = leg.Underlying,
+                Structure = leg.Symbol,
+                Verdict = Verdict.CLOSED,
+                Gate = "degraded-flatten",
+                Finding = $"closed {side} leg directly; the book could not be reconstructed",
+            }, orderId));
+        }
+    }
 
     foreach (SpreadPosition held in heldSpreads)
     {
