@@ -633,6 +633,14 @@ class Component extends DCLogic {
 
     // SPY260903C00764000 -> { underlying, expiry, strike }. Mirrors OccSymbol on the agent
     // side: a fixed 15-character suffix, and whatever precedes it is the root.
+    // Every displayed time is Eastern, matching the header and the market. The log keeps ISO
+    // UTC -- that is the durable record and the contract documents it as such -- but a page
+    // showing 13:25 in one panel and 17:25 in another for the same cycle reads as two clocks.
+    const ET = -4 * 3600 * 1000;
+    const etParts = (iso) => new Date(Date.parse(iso) + ET).toISOString();
+    const etHM = (iso) => etParts(iso).slice(11, 16);
+    const etDate = (iso) => etParts(iso).slice(5, 10).replace('-', '.');
+
     const occ = (sym) => {
       const s = String(sym || '');
       if (s.length <= 15) return null;
@@ -760,7 +768,7 @@ class Component extends DCLogic {
     // Replayed: every decision from the first day through the selected one, newest first.
     const sourceRejections = accumulated
       ? accumulated.flatMap((r) => (r.decisions || []).map((d) => ({
-          t: String(r.timestamp).slice(11, 16),
+          t: etHM(r.timestamp),
           cand: d.structure ? d.underlying + ' ' + d.structure : d.underlying,
           verdict: d.verdict, gate: d.gate, reason: d.finding, executed: d.executed,
         }))).reverse()
@@ -795,7 +803,7 @@ class Component extends DCLogic {
     return {
       inception,
       day: asOf ? String(asOf.calendarState || '').replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase() : String(feed.day || '').toLowerCase(),
-      clock: asOf ? String(asOf.timestamp).slice(11, 16) + ' UTC | ' + String(asOf.timestamp).slice(5, 10).replace('-', '.') : feed.clock,
+      clock: asOf ? etHM(asOf.timestamp) + ' ET | ' + etDate(asOf.timestamp) : feed.clock,
       checkpoints: days.map((d) => (d ? d.label : '')),
       positions,
       rejections,
@@ -965,7 +973,7 @@ class Component extends DCLogic {
       return {
         n: s.n,
         risk: s.blackout ? 0 : (bySym[s.n] || 0),
-        k: s.note || (held ? held + ' position' + (held > 1 ? 's' : '') : 'no position'),
+        k: s.blackout ? s.note : (held ? held + ' position' + (held > 1 ? 's' : '') : 'no position'),
         blackout: !!s.blackout
       };
     });
