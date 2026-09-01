@@ -391,7 +391,10 @@ a:hover{color:#7d4d07}
 
 <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-top:14px;border-top:1px solid var(--line2,rgba(18,26,34,.06))">
 <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3,#8b98a4)">Aggregate deployed</div>
-<div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">{{ aggLine }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">{{ aggLine }}</div></div>
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-top:14px;border-top:1px solid var(--line2,rgba(18,26,34,.06));padding-top:10px;border-top:none">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3,#8b98a4)">Max gain at settlement</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink2,#5c6b78)">{{ bookGainLine }}</div>
 </div>
 <div style="font-family:'Newsreader',serif;font-size:14px;font-weight:300;line-height:1.45;color:var(--ink2,#5c6b78);text-wrap:pretty">Maximum loss is fixed when the order is constructed and enforced by the broker and the OCC. The agent cannot exceed it — not by error, not by intent.</div>
 </div>
@@ -725,7 +728,7 @@ class Component extends DCLogic {
               sym: lg.underlying,
               kind: 'call debit',
               qty: n + ' ×',
-              dte: dte + ' DTE',
+              dte: dte + ' DTE · ' + lg.expiry.slice(5).replace('-', '.'),
               mlPer: Math.round(debitPerShare * 100),
               n,
               open: Math.round(unrealised),
@@ -815,6 +818,17 @@ class Component extends DCLogic {
       curveFrom: feed.curveFrom,
       curveTo: feed.curveTo,
       curveLabel: feed.curveLabel,
+      bookMaxGain: (() => {
+        const risk = positions.reduce((a, p) => a + p.mlPer * p.n, 0);
+        const gain = positions.reduce((a, p) => {
+          const width = Number(String(p.legs[1].strike).replace(/\D/g, ''))
+                      - Number(String(p.legs[0].strike).replace(/\D/g, ''));
+          return a + (width * 100 - p.mlPer) * p.n;
+        }, 0);
+        if (!risk) return '';
+        return '$' + Math.round(gain).toLocaleString('en-US')
+             + ' · ' + (gain / risk).toFixed(2) + ':1 if every short clears';
+      })(),
       symbols: feed.symbols || [],
       blackoutNote: feed.blackoutNote || '',
       concurrencyNote: feed.concurrencyNote || '',
@@ -842,7 +856,7 @@ class Component extends DCLogic {
       positions: [], rejections: [], closed: [],
       preGate: 0, wins: 0, losses: 0, curve: [],
       curveFrom: '', curveTo: '', curveLabel: 'Equity',
-      symbols: [], blackoutNote: '', concurrencyNote: '', fundingNote: '',
+      symbols: [], blackoutNote: '', concurrencyNote: '', fundingNote: '', bookMaxGain: '',
       checkpoints: [],
     };
   }
@@ -1063,6 +1077,10 @@ class Component extends DCLogic {
       hasPositions: nPos > 0, noPositions: nPos === 0, noClosed: nClosed === 0,
       blackoutNote: d.blackoutNote || '',
       aggLine: usd0(totalRisk) + ' · ' + f2(pct(totalRisk)),
+      // The upside stated at book level, worded so it is not mistaken for the same kind of
+      // claim as the risk line above it. Maximum loss is enforced by the broker whatever
+      // happens; maximum gain requires every short strike to be cleared at settlement.
+      bookGainLine: d.bookMaxGain || '',
       posHeading: nPos === 0 ? 'Open positions · none' : 'Open positions · ' + nPos,
       positions,
       emptyPosStats: [

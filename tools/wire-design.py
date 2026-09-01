@@ -213,7 +213,7 @@ LIVE_JS = r"""
               sym: lg.underlying,
               kind: 'call debit',
               qty: n + ' ×',
-              dte: dte + ' DTE',
+              dte: dte + ' DTE · ' + lg.expiry.slice(5).replace('-', '.'),
               mlPer: Math.round(debitPerShare * 100),
               n,
               open: Math.round(unrealised),
@@ -303,6 +303,17 @@ LIVE_JS = r"""
       curveFrom: feed.curveFrom,
       curveTo: feed.curveTo,
       curveLabel: feed.curveLabel,
+      bookMaxGain: (() => {
+        const risk = positions.reduce((a, p) => a + p.mlPer * p.n, 0);
+        const gain = positions.reduce((a, p) => {
+          const width = Number(String(p.legs[1].strike).replace(/\D/g, ''))
+                      - Number(String(p.legs[0].strike).replace(/\D/g, ''));
+          return a + (width * 100 - p.mlPer) * p.n;
+        }, 0);
+        if (!risk) return '';
+        return '$' + Math.round(gain).toLocaleString('en-US')
+             + ' · ' + (gain / risk).toFixed(2) + ':1 if every short clears';
+      })(),
       symbols: feed.symbols || [],
       blackoutNote: feed.blackoutNote || '',
       concurrencyNote: feed.concurrencyNote || '',
@@ -330,7 +341,7 @@ LIVE_JS = r"""
       positions: [], rejections: [], closed: [],
       preGate: 0, wins: 0, losses: 0, curve: [],
       curveFrom: '', curveTo: '', curveLabel: 'Equity',
-      symbols: [], blackoutNote: '', concurrencyNote: '', fundingNote: '',
+      symbols: [], blackoutNote: '', concurrencyNote: '', fundingNote: '', bookMaxGain: '',
       checkpoints: [],
     };
   }
@@ -374,6 +385,11 @@ NL = chr(10)
 _BTN = '<div sc-camel-on-click="{{ %s }}" style="{{ %s }}">%s</div>'
 
 MARKUP_SUBSTITUTIONS = [
+    (
+        "book-level upside markup",
+        '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3,#8b98a4)">Aggregate deployed</div>\n<div style="font-family:\'IBM Plex Mono\',monospace;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">{{ aggLine }}</div>',
+        '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3,#8b98a4)">Aggregate deployed</div>\n<div style="font-family:\'IBM Plex Mono\',monospace;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">{{ aggLine }}</div></div>\n<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-top:14px;border-top:1px solid var(--line2,rgba(18,26,34,.06));padding-top:10px;border-top:none">\n<div style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3,#8b98a4)">Max gain at settlement</div>\n<div style="font-family:\'IBM Plex Mono\',monospace;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink2,#5c6b78)">{{ bookGainLine }}</div>',
+    ),
     (
         "stage button text",
         NL.join([
@@ -480,6 +496,15 @@ SUBSTITUTIONS = [
         "concurrency cap",
         "        { label: 'Open positions', value: String(nPos), note: 'of 5 concurrent · cap unchanged', color: nPos === 0 ? dim : ink },",
         "        { label: 'Open positions', value: String(nPos), note: d.concurrencyNote || '', color: nPos === 0 ? dim : ink },",
+    ),
+    (
+        "book-level upside",
+        "      aggLine: usd0(totalRisk) + ' · ' + f2(pct(totalRisk)),",
+        """      aggLine: usd0(totalRisk) + ' · ' + f2(pct(totalRisk)),
+      // The upside stated at book level, worded so it is not mistaken for the same kind of
+      // claim as the risk line above it. Maximum loss is enforced by the broker whatever
+      // happens; maximum gain requires every short strike to be cleared at settlement.
+      bookGainLine: d.bookMaxGain || '',""",
     ),
     (
         "stage button labels",
