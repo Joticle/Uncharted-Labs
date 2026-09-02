@@ -1,82 +1,29 @@
 {
-  "runId": "20260902T134500Z",
-  "timestamp": "2026-09-02T13:45:00Z",
+  "runId": "20260902T171641Z",
+  "timestamp": "2026-09-02T17:16:41Z",
   "account": "PA3BG520YCTT",
   "profile": "comp",
   "isCompetition": true,
   "marketOpen": true,
   "dryRun": false,
-  "equity": 99727.44,
+  "equity": 99755.94,
   "calendarState": "OpenAndManage",
   "riskPerTrade": {
     "label": "risk per trade",
     "ceilingPercent": 3.00,
-    "ceilingDollars": 2991.82,
-    "deployedDollars": 4880.00,
-    "deployedPercent": 4.89,
-    "utilisation": 1
+    "ceilingDollars": 2992.68,
+    "deployedDollars": 0,
+    "deployedPercent": 0,
+    "utilisation": 0
   },
-  "symbolExposure": [
-    {
-      "label": "SPY",
-      "ceilingPercent": 5.00,
-      "ceilingDollars": 4986.37,
-      "deployedDollars": 4880.00,
-      "deployedPercent": 4.89,
-      "utilisation": 0.9787
-    }
-  ],
+  "symbolExposure": [],
   "decisions": [
-    {
-      "underlying": "SPY",
-      "structure": "764C/769C",
-      "verdict": "CLOSED",
-      "gate": "PinRisk",
-      "finding": "SPY at $762.95 is inside the $762.50-$770.50 pin zone with 1d to expiry. Closing rather than gambling on where it settles.",
-      "executed": true,
-      "orderId": "1c223fc9-a8d9-4b17-8d9e-a034174c16fd",
-      "metrics": {
-        "longStrike": 764,
-        "shortStrike": 769,
-        "width": 5,
-        "delta": 0,
-        "debit": 1.47,
-        "rewardRisk": 2.41,
-        "costDragPercent": 0,
-        "maxLossDollars": 146.83,
-        "contracts": 20,
-        "riskDollars": 2936.67,
-        "riskPercent": 2.94
-      }
-    },
-    {
-      "underlying": "SPY",
-      "structure": "764C/774C",
-      "verdict": "CLOSED",
-      "gate": "PinRisk",
-      "finding": "SPY at $762.95 is inside the $762.50-$775.50 pin zone with 1d to expiry. Closing rather than gambling on where it settles.",
-      "executed": true,
-      "orderId": "d22ae52b-c9f3-4ce3-a3e5-1157c1db9ab5",
-      "metrics": {
-        "longStrike": 764,
-        "shortStrike": 774,
-        "width": 10,
-        "delta": 0,
-        "debit": 1.94,
-        "rewardRisk": 4.15,
-        "costDragPercent": 0,
-        "maxLossDollars": 194.33,
-        "contracts": 10,
-        "riskDollars": 1943.33,
-        "riskPercent": 1.95
-      }
-    },
     {
       "underlying": "SPY",
       "structure": "$10 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
-      "finding": "774C quote 40.0 % wide",
+      "finding": "776C quote 22.2 % wide",
       "executed": false,
       "orderId": "",
       "metrics": {
@@ -97,8 +44,8 @@
       "underlying": "SPY",
       "structure": "$15 width",
       "verdict": "REJECTED",
-      "gate": "liquidity",
-      "finding": "779C quote 28.6 % wide",
+      "gate": "no-short-leg",
+      "finding": "no quoted call at 781",
       "executed": false,
       "orderId": "",
       "metrics": {
@@ -117,24 +64,24 @@
     },
     {
       "underlying": "SPY",
-      "structure": "764C/769C",
-      "verdict": "REJECTED",
-      "gate": "SymbolExposure",
-      "finding": "A single spread risks $147.00, which no gate can accommodate. Blocked by the 5 (symbol exposure).",
-      "executed": false,
-      "orderId": "",
+      "structure": "766C/771C",
+      "verdict": "TAKEN",
+      "gate": "sized",
+      "finding": "delta 0.42 | 2.65:1 | $137.00 max loss | 1.37% of equity",
+      "executed": true,
+      "orderId": "0223293a-bd84-4b83-8e2a-2b049704fa49",
       "metrics": {
-        "longStrike": 764,
-        "shortStrike": 769,
+        "longStrike": 766,
+        "shortStrike": 771,
         "width": 5,
-        "delta": 0.424,
-        "debit": 1.47,
-        "rewardRisk": 2.40,
+        "delta": 0.420,
+        "debit": 1.37,
+        "rewardRisk": 2.65,
         "costDragPercent": 0.7,
-        "maxLossDollars": 147.00,
-        "contracts": 0,
-        "riskDollars": 0,
-        "riskPercent": 0
+        "maxLossDollars": 137.00,
+        "contracts": 10,
+        "riskDollars": 1370.00,
+        "riskPercent": 1.37
       }
     }
   ]

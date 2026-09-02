@@ -1,114 +1,35 @@
 {
-  "generatedAt": "2026-09-02T13:45:00Z",
+  "generatedAt": "2026-09-02T17:16:41Z",
   "day": "Day 3 of 4",
-  "clock": "09:45 ET | 09.02.26",
+  "clock": "13:16 ET | 09.02.26",
   "dryRun": false,
   "account": "PA3BG520YCTT",
-  "equity": 99727.44,
-  "positions": [
-    {
-      "sym": "SPY",
-      "title": "764/769 call debit spread",
-      "kind": "Bull call | defined risk",
-      "qty": 20,
-      "legs": "\u002B764C / -769C",
-      "dte": 1,
-      "open": "$1.47",
-      "n": 20,
-      "mlPer": "$146.83",
-      "maxLoss": 2936.67,
-      "maxLossPct": 2.94,
-      "metrics": [
-        {
-          "k": "Mark",
-          "v": "$1.44"
-        },
-        {
-          "k": "On risk",
-          "v": "-1.93%"
-        },
-        {
-          "k": "Of max",
-          "v": "-0.80%"
-        },
-        {
-          "k": "DTE",
-          "v": "1"
-        }
-      ]
-    },
-    {
-      "sym": "SPY",
-      "title": "764/774 call debit spread",
-      "kind": "Bull call | defined risk",
-      "qty": 10,
-      "legs": "\u002B764C / -774C",
-      "dte": 1,
-      "open": "$1.94",
-      "n": 10,
-      "mlPer": "$194.33",
-      "maxLoss": 1943.33,
-      "maxLossPct": 1.95,
-      "metrics": [
-        {
-          "k": "Mark",
-          "v": "$1.73"
-        },
-        {
-          "k": "On risk",
-          "v": "-10.98%"
-        },
-        {
-          "k": "Of max",
-          "v": "-2.65%"
-        },
-        {
-          "k": "DTE",
-          "v": "1"
-        }
-      ]
-    }
-  ],
+  "equity": 99755.94,
+  "positions": [],
   "rejections": [
     {
-      "t": "09:45",
-      "cand": "SPY 764C/769C",
-      "verdict": "CLOSED",
-      "gate": "PinRisk",
-      "reason": "SPY at $762.95 is inside the $762.50-$770.50 pin zone with 1d to expiry. Closing rather than gambling on where it settles.",
-      "executed": true
-    },
-    {
-      "t": "09:45",
-      "cand": "SPY 764C/774C",
-      "verdict": "CLOSED",
-      "gate": "PinRisk",
-      "reason": "SPY at $762.95 is inside the $762.50-$775.50 pin zone with 1d to expiry. Closing rather than gambling on where it settles.",
-      "executed": true
-    },
-    {
-      "t": "09:45",
+      "t": "13:16",
       "cand": "SPY $10 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
-      "reason": "774C quote 40.0 % wide",
+      "reason": "776C quote 22.2 % wide",
       "executed": false
     },
     {
-      "t": "09:45",
+      "t": "13:16",
       "cand": "SPY $15 width",
       "verdict": "REJECTED",
-      "gate": "liquidity",
-      "reason": "779C quote 28.6 % wide",
+      "gate": "no-short-leg",
+      "reason": "no quoted call at 781",
       "executed": false
     },
     {
-      "t": "09:45",
-      "cand": "SPY 764C/769C",
-      "verdict": "REJECTED",
-      "gate": "SymbolExposure",
-      "reason": "A single spread risks $147.00, which no gate can accommodate. Blocked by the 5 (symbol exposure).",
-      "executed": false
+      "t": "13:16",
+      "cand": "SPY 766C/771C",
+      "verdict": "TAKEN",
+      "gate": "sized",
+      "reason": "delta 0.42 | 2.65:1 | $137.00 max loss | 1.37% of equity",
+      "executed": true
     }
   ],
   "closed": [
@@ -120,7 +41,7 @@
       "win": false
     }
   ],
-  "preGate": 63,
+  "preGate": 62,
   "wins": 0,
   "losses": 1,
   "curve": [
@@ -132,16 +53,16 @@
   "curveFrom": "Inception 08.31",
   "curveTo": "09.02",
   "curveLabel": "Account equity",
-  "riskDeployed": 4880.00,
-  "riskCeiling": 2991.82,
+  "riskDeployed": 0,
+  "riskCeiling": 2992.68,
   "symbols": [
     {
       "n": "SPY",
-      "note": "2 positions",
+      "note": "no position",
       "blackout": false
     }
   ],
   "blackoutNote": "",
   "concurrencyNote": "no count cap | bounded by the 3 and the 5, max 10 per order",
-  "fundingNote": "funded at $99,727.44"
+  "fundingNote": "funded at $99,755.94"
 }
