@@ -258,7 +258,13 @@ public static class DashboardFeedBuilder
     /// </remarks>
     private static string DayLabel(CompetitionCalendar calendar, DateTimeOffset now)
     {
-        int day = Math.Clamp((int)(now.Date - calendar.TradingOpens.Date).TotalDays + 1, 1, 4);
+        // Counted on the Eastern date, because that is the date every other figure on the
+        // page is stated in. now.Date is the UTC date, which rolls over at 20:00 ET and put
+        // "Day 4 of 4" on the header at 20:33 ET on Wednesday -- Thursday announced four
+        // hours before Thursday, on the one counter a judge reads as the contest clock.
+        int day = Math.Clamp(
+            (int)(now.ToOffset(Eastern).Date - calendar.TradingOpens.ToOffset(Eastern).Date).TotalDays + 1,
+            1, 4);
 
         return calendar.PermissionAt(now) switch
         {
@@ -275,7 +281,10 @@ public static class DashboardFeedBuilder
         decimal longStrike = OccSymbol.Strike(p.Spread.LongSymbol) ?? 0m;
         decimal shortStrike = OccSymbol.Strike(p.Spread.ShortSymbol) ?? 0m;
         decimal maxLoss = p.Spread.MaxLoss(p.Contracts);
-        int dte = p.Spread.Expiration.DayNumber - DateOnly.FromDateTime(now.UtcDateTime).DayNumber;
+        // Days to expiry against the Eastern date, for the same reason. On the UTC date a
+        // Wednesday-evening cycle reports a Thursday expiry as 0 DTE, a day early.
+        int dte = p.Spread.Expiration.DayNumber
+                - DateOnly.FromDateTime(now.ToOffset(Eastern).DateTime).DayNumber;
 
         return new FeedPosition
         {

@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-09-03T00:33:56Z",
-  "day": "Day 4 of 4",
-  "clock": "20:33 ET | 09.02.26",
+  "generatedAt": "2026-09-03T02:20:30Z",
+  "day": "Day 3 of 4",
+  "clock": "22:20 ET | 09.02.26",
   "dryRun": true,
   "account": "PA3BG520YCTT",
   "equity": 99755.44,
@@ -12,7 +12,7 @@
       "kind": "Bull call | defined risk",
       "qty": 10,
       "legs": "\u002B766C / -771C",
-      "dte": 0,
+      "dte": 1,
       "open": "$1.37",
       "n": 10,
       "mlPer": "$137.00",
@@ -33,14 +33,14 @@
         },
         {
           "k": "DTE",
-          "v": "0"
+          "v": "1"
         }
       ]
     }
   ],
   "rejections": [
     {
-      "t": "20:33",
+      "t": "22:20",
       "cand": "SPY 766C/771C",
       "verdict": "HELD",
       "gate": "None",
@@ -48,7 +48,7 @@
       "executed": false
     },
     {
-      "t": "20:33",
+      "t": "22:20",
       "cand": "SPY",
       "verdict": "SKIPPED",
       "gate": "market-closed",
@@ -56,7 +56,7 @@
       "executed": false
     },
     {
-      "t": "20:33",
+      "t": "22:20",
       "cand": "SPY $10 width",
       "verdict": "REJECTED",
       "gate": "liquidity",
@@ -64,7 +64,7 @@
       "executed": false
     },
     {
-      "t": "20:33",
+      "t": "22:20",
       "cand": "SPY $15 width",
       "verdict": "REJECTED",
       "gate": "no-short-leg",
@@ -72,7 +72,7 @@
       "executed": false
     },
     {
-      "t": "20:33",
+      "t": "22:20",
       "cand": "SPY 766C/771C",
       "verdict": "SKIPPED",
       "gate": "competition-calendar",

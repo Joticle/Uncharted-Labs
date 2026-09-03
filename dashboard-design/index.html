@@ -582,6 +582,27 @@ class Component extends DCLogic {
   // between scripted scenes. Each checkpoint is a day the agent actually ran, and selecting
   // one shows the book as it stood at the end of that day -- gates filling and refusals
   // accumulating, which is the discipline shown over time rather than at one instant.
+  // The log keeps UTC, and every figure on the page is stated in Eastern. Slicing the
+  // timestamp gave the UTC date, so the six cycles of Wednesday evening -- 00:17 to 00:33
+  // UTC, which is 20:17 to 20:33 ET -- were filed under 09.03 and labelled a tab 09.03 while
+  // the header beneath it read 09.02. One run, two calendars, and a judge told that a tab
+  // dated Thursday holds Wednesday.
+  etDay(iso) {
+    const at = Date.parse(iso);
+    if (!Number.isFinite(at)) return String(iso).slice(0, 10);
+
+    try {
+      // en-CA formats as yyyy-mm-dd, which sorts and slices like the ISO date it replaces.
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit',
+      }).format(new Date(at));
+    } catch (e) {
+      // Eastern is UTC-4 for the whole contest window, which is the same assumption the
+      // agent makes rather than carrying a timezone database.
+      return new Date(at - 4 * 3600 * 1000).toISOString().slice(0, 10);
+    }
+  }
+
   buildDays(dec, pf) {
     const history = (dec && dec.history) || [];
     if (!history.length) return [];
@@ -589,19 +610,22 @@ class Component extends DCLogic {
     const byDay = new Map();
     history.slice().sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)))
       .forEach((r) => {
-        const day = String(r.timestamp).slice(0, 10);
+        const day = this.etDay(r.timestamp);
         if (!byDay.has(day)) byDay.set(day, []);
         byDay.get(day).push(r);
       });
 
     const days = [...byDay.entries()].map(([date, runs]) => ({ date, runs }));
 
-    // Three slots, because the design has three buttons: first, middle, latest. With fewer
-    // days than slots the surplus is labelled as empty rather than duplicating a day.
-    const pick = days.length >= 3
-      ? [days[0], days[Math.floor((days.length - 1) / 2)], days[days.length - 1]]
-      : days.length === 2 ? [days[0], null, days[1]]
-      : [days[0], null, null];
+    // Three slots, because the design has three buttons, and they hold the three most
+    // recent days the agent ran. First / middle / latest reached back into the weekend
+    // rehearsals and stepped over Tuesday 09.01 -- a full session carrying three entries and
+    // both positions that later closed on pin risk -- to land on Saturday instead. Fewer
+    // days than slots leaves the surplus empty rather than duplicating a day.
+    const last3 = days.slice(-3);
+    const pick = last3.length === 3 ? last3
+      : last3.length === 2 ? [last3[0], null, last3[1]]
+      : [last3[0], null, null];
 
     return pick.map((d) => d && ({
       date: d.date,
@@ -645,7 +669,7 @@ class Component extends DCLogic {
     const allDays = cp ? cp.upto : [];
     const dayEnd = (dd) => dd.runs[dd.runs.length - 1];
     const funding = allDays.length ? num(allDays[0].runs[0].equity) : 0;
-    const asOfDay = asOf ? String(asOf.timestamp).slice(5, 10).replace('-', '.') : null;
+    const asOfDay = asOf ? this.etDay(asOf.timestamp).slice(5).replace('-', '.') : null;
 
     // Exits carry their own date, so the closed table is cut at the checkpoint rather than
     // inherited whole. An exit with no usable date is left out of a replay rather than
@@ -664,7 +688,9 @@ class Component extends DCLogic {
     const ET = -4 * 3600 * 1000;
     const etParts = (iso) => new Date(Date.parse(iso) + ET).toISOString();
     const etHM = (iso) => etParts(iso).slice(11, 16);
-    const etDate = (iso) => etParts(iso).slice(5, 10).replace('-', '.');
+    // Dates go through the same conversion the tabs use, so a stream row and the tab above
+    // it cannot land on different days.
+    const etDate = (iso) => this.etDay(iso).slice(5).replace('-', '.');
 
     const occ = (sym) => {
       const s = String(sym || '');
