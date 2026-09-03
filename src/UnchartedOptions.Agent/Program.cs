@@ -51,7 +51,20 @@ Console.WriteLine($"Uncharted Options  [{profile.Description}]  {(live ? "LIVE" 
 Console.WriteLine(new string('=', 72));
 
 // The judged account must not carry test orders. Refused here rather than left to discipline.
-if (profile.IsCompetition && live && !calendar.MayOpenNewPositions(now))
+//
+// The test is whether the contest is running, not whether it will accept new positions. Those
+// are different questions and this asked the wrong one: MayOpenNewPositions goes false at the
+// Wednesday entry close, so from that moment every live cycle on the judged account exited
+// here -- before the CLI runner was even constructed, and therefore upstream of the position
+// read, the exit ladder, the flatten and the log write. On the Thursday, with a position at
+// 0 DTE and pin risk the only thing standing between the account and an unhedged assignment,
+// the agent would have refused to look at its own book four times and gone green each time,
+// because CI reads exit 2 as the guard declining to trade.
+//
+// New positions are still barred, at the gate that exists for it, further down.
+if (profile.IsCompetition && live
+    && calendar.PermissionAt(now) is TradingPermission.BeforeCompetitionOpens
+                                  or TradingPermission.Closed)
 {
     Console.Error.WriteLine($"REFUSED: {calendar.Describe(now)}");
     Console.Error.WriteLine("The competition account cannot be traded outside the competition window.");

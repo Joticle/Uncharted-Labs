@@ -1,38 +1,38 @@
 {
-  "runId": "20260903T022030Z",
-  "timestamp": "2026-09-03T02:20:30Z",
+  "runId": "20260903T205335Z",
+  "timestamp": "2026-09-03T20:53:35Z",
   "account": "PA3BG520YCTT",
   "profile": "comp",
   "isCompetition": true,
   "marketOpen": false,
   "dryRun": true,
-  "equity": 99755.44,
-  "calendarState": "ManageOnly",
+  "equity": 103219.57,
+  "calendarState": "FlattenAll",
   "riskPerTrade": {
     "label": "risk per trade",
     "ceilingPercent": 3.00,
-    "ceilingDollars": 2992.66,
-    "deployedDollars": 1370,
-    "deployedPercent": 1.37,
-    "utilisation": 0.4578
+    "ceilingDollars": 3096.59,
+    "deployedDollars": 274,
+    "deployedPercent": 0.27,
+    "utilisation": 0.0885
   },
   "symbolExposure": [
     {
       "label": "SPY",
       "ceilingPercent": 5.00,
-      "ceilingDollars": 4987.77,
-      "deployedDollars": 1370,
-      "deployedPercent": 1.37,
-      "utilisation": 0.2747
+      "ceilingDollars": 5160.98,
+      "deployedDollars": 274,
+      "deployedPercent": 0.27,
+      "utilisation": 0.0531
     }
   ],
   "decisions": [
     {
       "underlying": "SPY",
       "structure": "766C/771C",
-      "verdict": "HELD",
-      "gate": "None",
-      "finding": "Hold. 0.00% of max profit, 0.00% on risk, 0d held, 0d to expiry.",
+      "verdict": "CLOSED",
+      "gate": "PinRisk",
+      "finding": "SPY at $771.92 is inside the $764.50-$772.50 pin zone with 0d to expiry. Closing rather than gambling on where it settles.",
       "executed": false,
       "orderId": "",
       "metrics": {
@@ -44,9 +44,9 @@
         "rewardRisk": 2.65,
         "costDragPercent": 0,
         "maxLossDollars": 137.00,
-        "contracts": 10,
-        "riskDollars": 1370.00,
-        "riskPercent": 1.37
+        "contracts": 2,
+        "riskDollars": 274.00,
+        "riskPercent": 0.27
       }
     },
     {
@@ -54,7 +54,7 @@
       "structure": "",
       "verdict": "SKIPPED",
       "gate": "market-closed",
-      "finding": "market is closed; next open 2026-09-03 09:30 UTC",
+      "finding": "market is closed; next open 2026-09-04 09:30 UTC",
       "executed": false,
       "orderId": "",
       "metrics": {
@@ -73,16 +73,16 @@
     },
     {
       "underlying": "SPY",
-      "structure": "$10 width",
+      "structure": "",
       "verdict": "REJECTED",
-      "gate": "liquidity",
-      "finding": "776C quote 66.7 % wide",
+      "gate": "delta-band",
+      "finding": "No call in the 0.35-0.45 delta band among 0 quoted contracts.",
       "executed": false,
       "orderId": "",
       "metrics": {
         "longStrike": 0,
         "shortStrike": 0,
-        "width": 10,
+        "width": 0,
         "delta": 0,
         "debit": 0,
         "rewardRisk": 0,
@@ -91,50 +91,6 @@
         "contracts": 0,
         "riskDollars": 0,
         "riskPercent": 0
-      }
-    },
-    {
-      "underlying": "SPY",
-      "structure": "$15 width",
-      "verdict": "REJECTED",
-      "gate": "no-short-leg",
-      "finding": "no quoted call at 781",
-      "executed": false,
-      "orderId": "",
-      "metrics": {
-        "longStrike": 0,
-        "shortStrike": 0,
-        "width": 15,
-        "delta": 0,
-        "debit": 0,
-        "rewardRisk": 0,
-        "costDragPercent": 0,
-        "maxLossDollars": 0,
-        "contracts": 0,
-        "riskDollars": 0,
-        "riskPercent": 0
-      }
-    },
-    {
-      "underlying": "SPY",
-      "structure": "766C/771C",
-      "verdict": "SKIPPED",
-      "gate": "competition-calendar",
-      "finding": "would size 10 at 2.60:1, but competition-calendar bars new positions",
-      "executed": false,
-      "orderId": "",
-      "metrics": {
-        "longStrike": 766,
-        "shortStrike": 771,
-        "width": 5,
-        "delta": 0.438,
-        "debit": 1.39,
-        "rewardRisk": 2.60,
-        "costDragPercent": 0,
-        "maxLossDollars": 139.00,
-        "contracts": 10,
-        "riskDollars": 1390.00,
-        "riskPercent": 1.39
       }
     }
   ]
