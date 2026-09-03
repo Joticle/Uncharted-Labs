@@ -349,13 +349,25 @@ self-describing keys, this uses the dashboard's own vocabulary.
   "title": "772C/777C expiring 09.03",
   "reason": "closed 09.02 14:00 ET over 4 fills",
   "pnl": 780.00,                // realised dollars, negative for a loss
-  "win": true
+  "win": true,
+  "closedOn": "09.02",          // close date, MM.dd, Eastern
+  "held": "2d"                  // holding period in TRADING SESSIONS
 }
 ```
 
 `reason` states what the broker can attest to — when it closed and over how many fills. The
 *why* (which exit stage fired) is recorded live in the decision stream as a `CLOSED` entry at
 the moment it happened; it is not inferred backwards from fills.
+
+`held` counts **trading sessions**, not calendar days: weekends are not sessions, so a
+Friday-to-Monday hold is `"1d"`, and a position opened and closed inside a single session is
+`"1d"` rather than `"0d"`.
+
+**A consumer averaging `held` must guard the result.** Print a number only when it is finite;
+otherwise show the same placeholder the card uses before the first trade closes. Both of these
+fields were once absent while a consumer read the tuple positionally, so the date column
+rendered blank and the mean parsed an empty string into `NaN` the moment the first position
+was unwound.
 
 ### `symbols[]`
 

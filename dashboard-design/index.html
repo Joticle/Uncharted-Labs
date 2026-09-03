@@ -1036,9 +1036,16 @@ class Component extends DCLogic {
         ? { label: 'Closed trades', value: String(nClosed), note: d.wins + ' won · ' + d.losses + ' lost · rate reports at 5', color: ink }
         : { label: 'Win rate', value: (d.wins / nClosed * 100).toFixed(1) + '%', note: d.wins + ' won · ' + d.losses + ' lost · ' + nClosed + ' closed', color: ink };
 
-    const daysStat = nClosed === 0
-      ? { label: 'Days to close', value: '—', note: 'reports on first exit', color: dim }
-      : { label: 'Days to close', value: (d.closed.reduce((a, c) => a + parseFloat(c[3]), 0) / nClosed).toFixed(1), note: 'mean holding period, in sessions', color: ink };
+    // A mean over unparseable holding periods is NaN, and NaN on the page reads as a broken
+    // instrument rather than a quiet one. The agent now emits a real session count; this
+    // refuses to print anything that is not a finite number, falling back to the same
+    // placeholder the card already shows before the first exit.
+    const heldMean = nClosed === 0
+      ? Number.NaN
+      : d.closed.reduce((a, c) => a + (Number.parseFloat(c[3]) || 0), 0) / nClosed;
+    const daysStat = (nClosed > 0 && Number.isFinite(heldMean))
+      ? { label: 'Days to close', value: heldMean.toFixed(1), note: 'mean holding period, in sessions', color: ink }
+      : { label: 'Days to close', value: '—', note: 'reports on first exit', color: dim };
 
     const deltaV = eq - d.inception;
 

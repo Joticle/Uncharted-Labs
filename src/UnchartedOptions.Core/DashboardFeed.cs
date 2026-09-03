@@ -65,6 +65,19 @@ public sealed record FeedClosed
     [JsonPropertyName("reason")] public required string Reason { get; init; }
     [JsonPropertyName("pnl")] public required decimal Pnl { get; init; }
     [JsonPropertyName("win")] public required bool Win { get; init; }
+
+    /// <summary>Date the position was unwound, as MM.dd.</summary>
+    [JsonPropertyName("closedOn")] public required string ClosedOn { get; init; }
+
+    /// <summary>
+    /// Holding period in trading sessions, e.g. <c>1d</c>.
+    /// </summary>
+    /// <remarks>
+    /// Both of these were absent while the consumer read them positionally, so the date column
+    /// rendered blank and the mean holding period parsed an empty string into NaN the moment
+    /// the first trade closed. Weekends are not sessions, so a Friday-to-Monday hold is one.
+    /// </remarks>
+    [JsonPropertyName("held")] public required string Held { get; init; }
 }
 
 /// <summary>The whole view model, one object per run.</summary>
@@ -296,7 +309,18 @@ public static class DashboardFeedBuilder
         Reason = $"closed {t.ClosedAt.ToOffset(Eastern):MM.dd HH:mm} ET over {t.Fills} fills",
         Pnl = t.RealisedPnl,
         Win = t.IsWin,
+        ClosedOn = t.ClosedAt.ToOffset(Eastern).ToString("MM.dd", CultureInfo.InvariantCulture),
+        Held = $"{HeldSessions(t)}d",
     };
+
+    /// <summary>
+    /// Trading sessions a position was held for, counted the same way the blackout window
+    /// counts them. A position opened and closed inside one session is one, not zero: the
+    /// card reports a holding period, and zero would read as never held.
+    /// </summary>
+    private static int HeldSessions(RealisedTrade t) => Math.Max(1, BlackoutCalendar.SessionsBetween(
+        DateOnly.FromDateTime(t.OpenedAt.UtcDateTime),
+        DateOnly.FromDateTime(t.ClosedAt.UtcDateTime)));
 
     private static FeedRejection ToFeed(Decision d, string runTimestamp)
     {
