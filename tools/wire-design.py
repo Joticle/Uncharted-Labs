@@ -636,6 +636,13 @@ SUBSTITUTIONS = [
         """      posHeading: nPos == null ? 'Open positions · —'
         : (nPos === 0 ? 'Open positions · none' : 'Open positions · ' + nPos),""",
     ),
+    (
+        "spread count may be unknown",
+        """          note: totalRisk === 0 ? 'nothing deployed · every ceiling intact' : f2(pct(totalRisk)) + ' of equity, across ' + nPos + ' spreads',""",
+        """          note: totalRisk === 0 ? 'nothing deployed · every ceiling intact'
+            : f2(pct(totalRisk)) + ' of equity'
+              + (nPos == null ? '' : ', across ' + nPos + ' spreads'),""",
+    ),
 ]
 
 

@@ -119,6 +119,28 @@ public class CheckpointReplayTests
         Assert.Contains("value: nPos == null ? '—' : String(nPos)", page, StringComparison.Ordinal);
         Assert.Contains("posHeading: nPos == null ? 'Open positions · —'", page, StringComparison.Ordinal);
         Assert.Contains("stateLine: (nPos == null ? '—'", page, StringComparison.Ordinal);
+
+        // Every string that interpolates the count has to survive it being unknown. This one
+        // did not, and rendered "3.02% of equity, across null spreads" on the 09.01 tab.
+        Assert.Contains("+ (nPos == null ? '' : ', across ' + nPos + ' spreads')", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("' of equity, across ' + nPos + ' spreads',", page, StringComparison.Ordinal);
+    }
+
+    /// <summary>Nothing reaches the page by pasting a possibly-null count into a string.</summary>
+    [Fact]
+    public void No_rendered_string_interpolates_the_count_without_guarding_it()
+    {
+        string page = Page();
+
+        foreach (Match m in Regex.Matches(page, @"\+ nPos\b"))
+        {
+            // The guard often sits a line above the interpolation, so look back over the
+            // whole expression rather than the single line it happens to end on.
+            int from = Math.Max(0, m.Index - 220);
+
+            Assert.True(page[from..m.Index].Contains("nPos == null", StringComparison.Ordinal),
+                $"nPos is interpolated unguarded: {page[from..(m.Index + 40)].Trim()}");
+        }
     }
 
     [Fact]

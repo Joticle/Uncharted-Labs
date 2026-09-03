@@ -1157,7 +1157,9 @@ class Component extends DCLogic {
         { label: 'Equity', value: usd0(eq), size: '24px',
           note: deltaV === 0 ? (d.fundingNote || '') : (deltaV > 0 ? '+' : '−') + usd0(Math.abs(deltaV)) + ' since funding', color: ink },
         { label: 'Risk deployed', value: usd0(totalRisk),
-          note: totalRisk === 0 ? 'nothing deployed · every ceiling intact' : f2(pct(totalRisk)) + ' of equity, across ' + nPos + ' spreads',
+          note: totalRisk === 0 ? 'nothing deployed · every ceiling intact'
+            : f2(pct(totalRisk)) + ' of equity'
+              + (nPos == null ? '' : ', across ' + nPos + ' spreads'),
           color: totalRisk === 0 ? dim : ink },
         { label: 'Open positions', value: nPos == null ? '—' : String(nPos),
           note: nPos == null ? 'not itemised in the log for a past day' : (d.concurrencyNote || ''),
