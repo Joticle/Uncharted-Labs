@@ -7,13 +7,26 @@ using UnchartedOptions.Core;
 // scheduler, or a terminal. Nothing is held between runs: the broker is the state, which is
 // the same principle as the risk model. The decision log is written, never read back.
 //
-//   (no flags)   dry run against the dev account
-//   --live       actually place and close orders
-//   --comp       target the judged competition account
-//   --preflight  readiness report, then exit
-//   --verify     account configuration check, then exit
+// The accepted command line is AgentArguments.Usage. Anything else stops the run: an
+// unrecognised flag used to fall through in silence, and --profile comp reads as a request
+// for the judged account while selecting the dev one.
 
 IReadOnlyList<string> argv = args;
+
+IReadOnlyList<string> usageFaults = AgentArguments.Faults(argv);
+
+if (usageFaults.Count > 0)
+{
+    foreach (string fault in usageFaults)
+    {
+        Console.Error.WriteLine($"REFUSED: {fault}.");
+    }
+
+    Console.Error.WriteLine();
+    Console.Error.WriteLine("Accepted arguments:");
+    Console.Error.WriteLine(AgentArguments.Usage);
+    return AgentArguments.UsageExitCode;
+}
 bool live = argv.Contains("--live", StringComparer.OrdinalIgnoreCase);
 bool verifyOnly = argv.Contains("--verify", StringComparer.OrdinalIgnoreCase);
 bool preflight = argv.Contains("--preflight", StringComparer.OrdinalIgnoreCase);

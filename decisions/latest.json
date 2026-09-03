@@ -1,52 +1,52 @@
 {
-  "runId": "20260903T002258Z",
-  "timestamp": "2026-09-03T00:22:58Z",
-  "account": "PA3ILISQPBT4",
-  "profile": "paper",
-  "isCompetition": false,
+  "runId": "20260903T003356Z",
+  "timestamp": "2026-09-03T00:33:56Z",
+  "account": "PA3BG520YCTT",
+  "profile": "comp",
+  "isCompetition": true,
   "marketOpen": false,
   "dryRun": true,
-  "equity": 100609.14,
+  "equity": 99755.44,
   "calendarState": "ManageOnly",
   "riskPerTrade": {
     "label": "risk per trade",
     "ceilingPercent": 3.00,
-    "ceilingDollars": 3018.27,
-    "deployedDollars": 1540,
-    "deployedPercent": 1.53,
-    "utilisation": 0.5102
+    "ceilingDollars": 2992.66,
+    "deployedDollars": 1370,
+    "deployedPercent": 1.37,
+    "utilisation": 0.4578
   },
   "symbolExposure": [
     {
       "label": "SPY",
       "ceilingPercent": 5.00,
-      "ceilingDollars": 5030.46,
-      "deployedDollars": 1540,
-      "deployedPercent": 1.53,
-      "utilisation": 0.3061
+      "ceilingDollars": 4987.77,
+      "deployedDollars": 1370,
+      "deployedPercent": 1.37,
+      "utilisation": 0.2747
     }
   ],
   "decisions": [
     {
       "underlying": "SPY",
-      "structure": "764C/769C",
-      "verdict": "CLOSED",
-      "gate": "PinRisk",
-      "finding": "SPY at $764.34 is inside the $762.50-$770.50 pin zone with 0d to expiry. Closing rather than gambling on where it settles.",
+      "structure": "766C/771C",
+      "verdict": "HELD",
+      "gate": "None",
+      "finding": "Hold. 0.00% of max profit, 0.00% on risk, 0d held, 0d to expiry.",
       "executed": false,
       "orderId": "",
       "metrics": {
-        "longStrike": 764,
-        "shortStrike": 769,
+        "longStrike": 766,
+        "shortStrike": 771,
         "width": 5,
         "delta": 0,
-        "debit": 1.54,
-        "rewardRisk": 2.25,
+        "debit": 1.37,
+        "rewardRisk": 2.65,
         "costDragPercent": 0,
-        "maxLossDollars": 154.00,
+        "maxLossDollars": 137.00,
         "contracts": 10,
-        "riskDollars": 1540.00,
-        "riskPercent": 1.53
+        "riskDollars": 1370.00,
+        "riskPercent": 1.37
       }
     },
     {
@@ -134,7 +134,7 @@
         "maxLossDollars": 139.00,
         "contracts": 10,
         "riskDollars": 1390.00,
-        "riskPercent": 1.38
+        "riskPercent": 1.39
       }
     }
   ]
