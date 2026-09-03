@@ -119,6 +119,28 @@ LIVE_JS = r"""
       return Number.isFinite(n) ? n : 0;
     };
 
+    // ---- what a replayed checkpoint can honestly reconstruct ----
+    //
+    // The log records equity, both ceilings and every decision, so those replay exactly. It
+    // does not record the book: no leg detail, no mark, no unrealised figure for a day that
+    // has passed, and the broker keeps no memory of what it held. Panels needing the book
+    // therefore read the aggregate the log does carry, or show the placeholder. What none of
+    // them may do is read today: $100,000 equity beside a −$240 change is two different days
+    // in one row, and a judge clicking 08.29 / 08.31 / 09.02 sees that before anything else.
+    const allDays = cp ? cp.upto : [];
+    const dayEnd = (dd) => dd.runs[dd.runs.length - 1];
+    const funding = allDays.length ? num(allDays[0].runs[0].equity) : 0;
+    const asOfDay = asOf ? String(asOf.timestamp).slice(5, 10).replace('-', '.') : null;
+
+    // Exits carry their own date, so the closed table is cut at the checkpoint rather than
+    // inherited whole. An exit with no usable date is left out of a replay rather than
+    // assumed to predate it.
+    const closedUpTo = (feed.closed || []).filter((c) => {
+      if (!asOfDay) return true;
+      const on = String(c.closedOn || '');
+      return /^\d\d\.\d\d$/.test(on) && on <= asOfDay;
+    });
+
     // SPY260903C00764000 -> { underlying, expiry, strike }. Mirrors OccSymbol on the agent
     // side: a fixed 15-character suffix, and whatever precedes it is the root.
     // Every displayed time is Eastern, matching the header and the market. The log keeps ISO
@@ -157,8 +179,8 @@ LIVE_JS = r"""
     // positions before placing the order, so a log-sourced panel is a cycle behind by
     // construction -- and on 1 Sep it showed an empty book against two filled orders.
     //
-    // A replayed checkpoint keeps the log's snapshot: that is what was true then, and the
-    // broker has no memory of it.
+    // A replayed checkpoint has no book to show at all. There is no log snapshot to keep:
+    // LogRun carries equity and the two ceilings, never the legs behind them.
     const brokerLegs = (pf && Array.isArray(pf.positions) ? pf.positions : [])
       .filter((l) => l.assetClass === 'us_option' && occ(l.symbol));
 
@@ -233,15 +255,10 @@ LIVE_JS = r"""
       return out;
     };
 
-    const positions = asOf
-      ? (feed.positions || []).map((p) => ({
-          title: p.title, sym: p.sym, kind: p.kind,
-          qty: p.qty + ' ×', dte: p.dte + ' DTE',
-          mlPer: num(p.mlPer), n: p.n, open: num(p.unrealised),
-          legs: legsOf(p),
-          metrics: (p.metrics || []).map((m) => [m.k, m.v]),
-        }))
-      : spreadsFromBroker();
+    // feed.positions is the live book, and drawing it under a past date was the defect:
+    // 766/771 was opened on 09.02 and expires 09.03, yet it rendered on the 08.29 slice at
+    // 0 DTE against an account that was holding nothing whatsoever that day.
+    const positions = asOf ? [] : spreadsFromBroker();
 
     // "cost-drag" -> "Cost drag". The design sets these in a small-caps column.
     const gateLabel = (g) =>
@@ -273,18 +290,23 @@ LIVE_JS = r"""
       };
     });
 
-    const closed = (feed.closed || []).map((c) => [
+    const closed = closedUpTo.map((c) => [
       (c.closedOn || ''), c.title, String(c.reason || '').toUpperCase(), (c.held || ''), num(c.pnl),
     ]);
 
     const realised = closed.reduce((a, c) => a + c[4], 0);
-    const openPl = positions.reduce((a, p) => a + p.open, 0);
-    const equity = asOf ? asOf.equity
+    const equity = asOf ? num(asOf.equity)
       : (pf && pf.account && Number.isFinite(pf.account.equity) ? pf.account.equity : feed.equity);
 
+    // Unrealised profit is absent from the log but implied by what is in it: an account
+    // taking no deposits holds funding, plus what it has banked, plus what it is carrying.
+    // Deriving it that way keeps the equity headline and the line beneath it on one day.
+    const openPl = asOf ? equity - funding - realised : positions.reduce((a, p) => a + p.open, 0);
+
     // renderVals computes eq = inception + realised + openPl. Solving for inception makes the
-    // displayed equity the broker's figure rather than a reconstruction of it.
-    const inception = equity - realised - openPl;
+    // displayed equity the broker's figure rather than a reconstruction of it. On a replay
+    // inception is funding itself, so the delta beneath the headline is measured from there.
+    const inception = asOf ? funding : equity - realised - openPl;
 
     const curve = (pf && pf.curve && pf.curve.length ? pf.curve : feed.curve) || [];
 
@@ -296,12 +318,26 @@ LIVE_JS = r"""
       positions,
       rejections,
       closed,
-      preGate: accumulated ? accumulated.length * 0 + (feed.preGate || 0) : (feed.preGate || 0),
-      wins: feed.wins || 0,
-      losses: feed.losses || 0,
-      curve,
-      curveFrom: feed.curveFrom,
-      curveTo: feed.curveTo,
+      // Handed over rather than recomputed from a book that is deliberately empty.
+      openPl: asOf ? openPl : null,
+      // Risk deployed replays from the log's own ceiling ledger, which is exact.
+      riskDeployed: asOf ? num((asOf.riskPerTrade || {}).deployedDollars) : null,
+      // A day that deployed nothing held nothing, and that is exact rather than inferred. A
+      // day that did deploy carries no count in the log, so the card shows the placeholder
+      // instead of a number borrowed from the live book.
+      positionCount: asOf
+        ? (num((asOf.riskPerTrade || {}).deployedDollars) === 0 ? 0 : null)
+        : null,
+      // Pre-gate filtering is a per-cycle figure the log does not keep.
+      preGate: asOf ? 0 : (feed.preGate || 0),
+      wins: asOf ? closedUpTo.filter((c) => c.win).length : (feed.wins || 0),
+      losses: asOf ? closedUpTo.filter((c) => !c.win).length : (feed.losses || 0),
+      // One point per day the agent ran, ending at the checkpoint, taken from the log.
+      curve: asOf ? [funding, ...allDays.map((dd) => num(dayEnd(dd).equity))] : curve,
+      curveFrom: asOf
+        ? 'Inception ' + allDays[0].date.slice(5).replace('-', '.')
+        : feed.curveFrom,
+      curveTo: asOf ? asOfDay : feed.curveTo,
       curveLabel: feed.curveLabel,
       bookMaxGain: (() => {
         const risk = positions.reduce((a, p) => a + p.mlPer * p.n, 0);
@@ -314,10 +350,23 @@ LIVE_JS = r"""
         return '$' + Math.round(gain).toLocaleString('en-US')
              + ' · ' + (gain / risk).toFixed(2) + ':1 if every short clears';
       })(),
-      symbols: feed.symbols || [],
+      // Exposure replays from the log's ceiling ledger, keeping the same underlyings so the
+      // panel does not change shape between days. A day holding capital the log does not
+      // itemise shows the em dash where a position count would otherwise go.
+      symbols: asOf
+        ? (feed.symbols || []).map((s) => {
+            const row = (asOf.symbolExposure || []).find((x) => x.label === s.n);
+            const risk = row ? num(row.deployedDollars) : 0;
+            return { n: s.n, note: s.note, blackout: !!s.blackout, risk,
+                     k: risk ? '—' : 'no position' };
+          })
+        : (feed.symbols || []),
       blackoutNote: feed.blackoutNote || '',
       concurrencyNote: feed.concurrencyNote || '',
-      fundingNote: feed.fundingNote || '',
+      fundingNote: asOf
+        ? 'funded at $' + funding.toLocaleString('en-US',
+            { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : (feed.fundingNote || ''),
     };
   }
 
@@ -486,8 +535,10 @@ SUBSTITUTIONS = [
       const held = d.positions.filter(p => p.sym === s.n).length;
       return {
         n: s.n,
-        risk: s.blackout ? 0 : (bySym[s.n] || 0),
-        k: s.blackout ? s.note : (held ? held + ' position' + (held > 1 ? 's' : '') : 'no position'),
+        risk: s.blackout ? 0 : (s.risk != null ? s.risk : (bySym[s.n] || 0)),
+        k: s.blackout ? s.note
+          : (s.k != null ? s.k
+            : (held ? held + ' position' + (held > 1 ? 's' : '') : 'no position')),
         blackout: !!s.blackout
       };
     });""",
@@ -500,7 +551,9 @@ SUBSTITUTIONS = [
     (
         "concurrency cap",
         "        { label: 'Open positions', value: String(nPos), note: 'of 5 concurrent · cap unchanged', color: nPos === 0 ? dim : ink },",
-        "        { label: 'Open positions', value: String(nPos), note: d.concurrencyNote || '', color: nPos === 0 ? dim : ink },",
+        """        { label: 'Open positions', value: nPos == null ? '—' : String(nPos),
+          note: nPos == null ? 'not itemised in the log for a past day' : (d.concurrencyNote || ''),
+          color: nPos ? ink : dim },""",
     ),
     (
         "book-level upside",
@@ -525,6 +578,37 @@ SUBSTITUTIONS = [
         "funding note",
         "          note: deltaV === 0 ? 'funded at $100,000 on 08.31' : (deltaV > 0 ? '+' : '−') + usd0(Math.abs(deltaV)) + ' since funding', color: ink },",
         "          note: deltaV === 0 ? (d.fundingNote || '') : (deltaV > 0 ? '+' : '−') + usd0(Math.abs(deltaV)) + ' since funding', color: ink },",
+    ),
+    (
+        "unrealised from the checkpoint",
+        """    const openPl = d.positions.reduce((a, p) => a + p.open, 0);""",
+        """    const openPl = d.openPl != null ? d.openPl : d.positions.reduce((a, p) => a + p.open, 0);""",
+    ),
+    (
+        "aggregate risk from the log",
+        """    const totalRisk = d.positions.reduce((a, p) => a + p.mlPer * p.n, 0);
+    const nPos = d.positions.length;""",
+        """    // A replayed day has no leg detail, but the log's ceiling ledger holds the aggregate,
+    // and that is what these two read. nPos is null when a past day deployed capital the
+    // log does not itemise: the card then shows the placeholder rather than counting an
+    // empty list and announcing that the account was flat.
+    const totalRisk = d.riskDeployed != null
+      ? d.riskDeployed
+      : d.positions.reduce((a, p) => a + p.mlPer * p.n, 0);
+    const nPos = d.positionCount != null
+      ? d.positionCount
+      : (d.riskDeployed != null ? null : d.positions.length);""",
+    ),
+    (
+        "state line may be unknown",
+        """      stateLine: nPos + (nPos === 1 ? ' position' : ' positions') + ' open · ' + usd0(totalRisk) +""",
+        """      stateLine: (nPos == null ? '—' : nPos + (nPos === 1 ? ' position' : ' positions')) + ' open · ' + usd0(totalRisk) +""",
+    ),
+    (
+        "position heading may be unknown",
+        """      posHeading: nPos === 0 ? 'Open positions · none' : 'Open positions · ' + nPos,""",
+        """      posHeading: nPos == null ? 'Open positions · —'
+        : (nPos === 0 ? 'Open positions · none' : 'Open positions · ' + nPos),""",
     ),
 ]
 
