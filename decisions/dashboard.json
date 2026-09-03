@@ -1,22 +1,70 @@
 {
-  "generatedAt": "2026-09-02T17:16:41Z",
-  "day": "Day 3 of 4",
-  "clock": "13:16 ET | 09.02.26",
-  "dryRun": false,
-  "account": "PA3BG520YCTT",
-  "equity": 99755.94,
-  "positions": [],
+  "generatedAt": "2026-09-03T00:22:58Z",
+  "day": "Day 4 of 4",
+  "clock": "20:22 ET | 09.02.26",
+  "dryRun": true,
+  "account": "PA3ILISQPBT4",
+  "equity": 100609.14,
+  "positions": [
+    {
+      "sym": "SPY",
+      "title": "764/769 call debit spread",
+      "kind": "Bull call | defined risk",
+      "qty": 10,
+      "legs": "\u002B764C / -769C",
+      "dte": 0,
+      "open": "$1.54",
+      "n": 10,
+      "mlPer": "$154.00",
+      "maxLoss": 1540.00,
+      "maxLossPct": 1.53,
+      "metrics": [
+        {
+          "k": "Mark",
+          "v": "$2.15"
+        },
+        {
+          "k": "On risk",
+          "v": "39.61%"
+        },
+        {
+          "k": "Of max",
+          "v": "17.63%"
+        },
+        {
+          "k": "DTE",
+          "v": "0"
+        }
+      ]
+    }
+  ],
   "rejections": [
     {
-      "t": "13:16",
-      "cand": "SPY $10 width",
-      "verdict": "REJECTED",
-      "gate": "liquidity",
-      "reason": "776C quote 22.2 % wide",
+      "t": "20:22",
+      "cand": "SPY 764C/769C",
+      "verdict": "CLOSED",
+      "gate": "PinRisk",
+      "reason": "SPY at $764.34 is inside the $762.50-$770.50 pin zone with 0d to expiry. Closing rather than gambling on where it settles.",
       "executed": false
     },
     {
-      "t": "13:16",
+      "t": "20:22",
+      "cand": "SPY",
+      "verdict": "SKIPPED",
+      "gate": "market-closed",
+      "reason": "market is closed; next open 2026-09-03 09:30 UTC",
+      "executed": false
+    },
+    {
+      "t": "20:22",
+      "cand": "SPY $10 width",
+      "verdict": "REJECTED",
+      "gate": "liquidity",
+      "reason": "776C quote 66.7 % wide",
+      "executed": false
+    },
+    {
+      "t": "20:22",
       "cand": "SPY $15 width",
       "verdict": "REJECTED",
       "gate": "no-short-leg",
@@ -24,23 +72,15 @@
       "executed": false
     },
     {
-      "t": "13:16",
+      "t": "20:22",
       "cand": "SPY 766C/771C",
-      "verdict": "TAKEN",
-      "gate": "sized",
-      "reason": "delta 0.42 | 2.65:1 | $137.00 max loss | 1.37% of equity",
-      "executed": true
+      "verdict": "SKIPPED",
+      "gate": "competition-calendar",
+      "reason": "would size 10 at 2.60:1, but competition-calendar bars new positions",
+      "executed": false
     }
   ],
-  "closed": [
-    {
-      "sym": "SPY",
-      "title": "764/769/774 expiring 09.03",
-      "reason": "closed 09.02 09:45 ET over 14 fills",
-      "pnl": -240.00,
-      "win": false
-    }
-  ],
+  "closed": [],
   "preGate": 62,
   "wins": 0,
   "losses": 1,
@@ -48,13 +88,13 @@
     100000,
     100000,
     100000,
-    99867.44
+    99929.14
   ],
   "curveFrom": "Inception 08.31",
   "curveTo": "09.02",
   "curveLabel": "Account equity",
-  "riskDeployed": 0,
-  "riskCeiling": 2992.68,
+  "riskDeployed": 1540,
+  "riskCeiling": 3018.27,
   "symbols": [
     {
       "n": "SPY",
@@ -64,5 +104,5 @@
   ],
   "blackoutNote": "",
   "concurrencyNote": "no count cap | bounded by the 3 and the 5, max 10 per order",
-  "fundingNote": "funded at $99,755.94"
+  "fundingNote": "funded at $100,609.14"
 }

@@ -90,12 +90,21 @@ public sealed class AlpacaCli
         decimal bid = ReadDecimal(quote, "bp");
         decimal ask = ReadDecimal(quote, "ap");
 
-        if (bid <= 0m || ask <= 0m)
+        // A one-sided quote still states a price, and IEX serves them routinely outside the
+        // deepest part of the session. Throwing here killed the whole cycle -- including the
+        // exit ladder and the flatten -- over a data quirk that costs at most half a spread
+        // of precision on a figure used only to bound the strike search.
+        if (bid > 0m && ask > 0m)
         {
-            throw new AlpacaCliException($"{symbol} has no two-sided quote (bid {bid}, ask {ask}).");
+            return (bid + ask) / 2m;
         }
 
-        return (bid + ask) / 2m;
+        if (bid > 0m || ask > 0m)
+        {
+            return Math.Max(bid, ask);
+        }
+
+        throw new AlpacaCliException($"{symbol} has no quote at all (bid {bid}, ask {ask}).");
     }
 
     /// <summary>

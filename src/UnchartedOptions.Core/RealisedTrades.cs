@@ -87,20 +87,32 @@ public static class RealisedTrades
 
         foreach (var group in groups)
         {
-            // Netting must be per symbol, not across the group. A vertical's legs carry
-            // opposite signs by construction -- long +10, short -10 -- so the group's net
-            // quantity is zero the moment it is opened. Only when every individual leg has
-            // returned to zero is the spread actually closed.
-            bool everyLegFlat = group
+            // Netting is per symbol. A vertical's legs carry opposite signs by construction --
+            // long +10, short -10 -- so the group's net quantity is zero the moment it opens,
+            // and only a symbol that has returned to zero is genuinely closed.
+            //
+            // Requiring the whole group to be flat was too strict: an underlying and expiry can
+            // carry several structures at once, and one still-open leg suppressed every closed
+            // trade beside it. Flat symbols are settled on their own.
+            HashSet<string> flat = group
                 .GroupBy(x => x.Fill.Symbol, StringComparer.OrdinalIgnoreCase)
-                .All(leg => leg.Sum(x => x.Fill.SignedQuantity) == 0m);
+                .Where(leg => leg.Sum(x => x.Fill.SignedQuantity) == 0m)
+                .Select(leg => leg.Key)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-            if (!everyLegFlat)
+            if (flat.Count == 0)
             {
                 continue;
             }
 
-            List<decimal> strikes = group
+            var settled = group.Where(x => flat.Contains(x.Fill.Symbol)).ToList();
+
+            if (settled.Count == 0)
+            {
+                continue;
+            }
+
+            List<decimal> strikes = settled
                 .Select(x => x.Strike!.Value)
                 .Distinct()
                 .OrderBy(s => s)
@@ -111,10 +123,10 @@ public static class RealisedTrades
                 Underlying = group.Key.Underlying,
                 Expiration = group.Key.Item2,
                 Strikes = strikes,
-                RealisedPnl = Math.Round(group.Sum(x => x.Fill.CashFlow), 2),
-                OpenedAt = group.Min(x => x.Fill.At),
-                ClosedAt = group.Max(x => x.Fill.At),
-                Fills = group.Count(),
+                RealisedPnl = Math.Round(settled.Sum(x => x.Fill.CashFlow), 2),
+                OpenedAt = settled.Min(x => x.Fill.At),
+                ClosedAt = settled.Max(x => x.Fill.At),
+                Fills = settled.Count,
             });
         }
 

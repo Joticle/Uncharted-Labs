@@ -1042,7 +1042,7 @@ class Component extends DCLogic {
     // placeholder the card already shows before the first exit.
     const heldMean = nClosed === 0
       ? Number.NaN
-      : d.closed.reduce((a, c) => a + (Number.parseFloat(c[3]) || 0), 0) / nClosed;
+      : d.closed.reduce((a, c) => a + Number.parseFloat(c[3]), 0) / nClosed;
     const daysStat = (nClosed > 0 && Number.isFinite(heldMean))
       ? { label: 'Days to close', value: heldMean.toFixed(1), note: 'mean holding period, in sessions', color: ink }
       : { label: 'Days to close', value: '—', note: 'reports on first exit', color: dim };
