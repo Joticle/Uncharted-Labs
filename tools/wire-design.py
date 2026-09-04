@@ -324,15 +324,23 @@ LIVE_JS = r"""
     const equity = asOf ? num(asOf.equity)
       : (pf && pf.account && Number.isFinite(pf.account.equity) ? pf.account.equity : feed.equity);
 
-    // Unrealised profit is absent from the log but implied by what is in it: an account
-    // taking no deposits holds funding, plus what it has banked, plus what it is carrying.
-    // Deriving it that way keeps the equity headline and the line beneath it on one day.
-    const openPl = asOf ? equity - funding - realised : positions.reduce((a, p) => a + p.open, 0);
+    // Unrealised profit is implied by what is known: an account taking no deposits holds
+    // funding, plus what it has banked, plus what it is carrying. That holds on the live view
+    // as well as a replayed one, and summing the reconstructed book instead was wrong in both
+    // directions -- realised only counts spreads whose every leg has netted to zero, so a
+    // partial close banks nothing it can see, and a book that has just expired carries
+    // nothing. On the final afternoon the header read $103,312 above "-$240 since funding":
+    // eight of ten contracts closed for +$2,832 and neither figure could account for it.
+    const openPl = allDays.length
+      ? equity - funding - realised
+      : positions.reduce((a, p) => a + p.open, 0);
 
-    // renderVals computes eq = inception + realised + openPl. Solving for inception makes the
-    // displayed equity the broker's figure rather than a reconstruction of it. On a replay
-    // inception is funding itself, so the delta beneath the headline is measured from there.
-    const inception = asOf ? funding : equity - realised - openPl;
+    // renderVals computes eq = inception + realised + openPl. Anchoring inception at funding
+    // and deriving unrealised above keeps that identity exact -- eq still resolves to the
+    // broker's own equity -- while making the delta beneath the headline what it claims to
+    // be: the distance from the account's starting balance. Solving for inception instead
+    // made the delta the sum of whatever the reconstruction happened to recognise.
+    const inception = allDays.length ? funding : equity - realised - openPl;
 
     const curve = (pf && pf.curve && pf.curve.length ? pf.curve : feed.curve) || [];
 
@@ -344,8 +352,9 @@ LIVE_JS = r"""
       positions,
       rejections,
       closed,
-      // Handed over rather than recomputed from a book that is deliberately empty.
-      openPl: asOf ? openPl : null,
+      // Handed over rather than recomputed from the book: on a replay there is none, and on
+      // the live view summing it misses everything the pairing could not resolve.
+      openPl: allDays.length ? openPl : null,
       // Risk deployed replays from the log's own ceiling ledger, which is exact.
       riskDeployed: asOf ? num((asOf.riskPerTrade || {}).deployedDollars) : null,
       // A day that deployed nothing held nothing, and that is exact rather than inferred. A

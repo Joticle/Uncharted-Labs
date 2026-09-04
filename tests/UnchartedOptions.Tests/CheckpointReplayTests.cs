@@ -78,8 +78,18 @@ public class CheckpointReplayTests
         // eq = inception + realised + openPl, and the delta under the headline is eq minus
         // inception. Anchoring inception at funding and deriving unrealised from the day's
         // own equity is what stops $100,000 appearing above a change of -$240.
-        Assert.Contains("const openPl = asOf ? equity - funding - realised", page, StringComparison.Ordinal);
-        Assert.Contains("const inception = asOf ? funding : equity - realised - openPl;", page, StringComparison.Ordinal);
+        Assert.Contains("const openPl = allDays.length", page, StringComparison.Ordinal);
+        Assert.Contains("? equity - funding - realised", page, StringComparison.Ordinal);
+        Assert.Contains("const inception = allDays.length ? funding : equity - realised - openPl;",
+            page, StringComparison.Ordinal);
+
+        // Solving for inception made the delta the sum of whatever the pairing recognised,
+        // not the distance from the starting balance. On the final afternoon that put
+        // $103,312 above "-$240 since funding": a partial close banks nothing FromFills can
+        // see, because the spread's legs have not netted to zero, and an expired book carries
+        // nothing either, so $3,552 of the account's own gain was invisible to both terms.
+        Assert.DoesNotContain("const inception = asOf ? funding", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("openPl: asOf ? openPl : null,", page, StringComparison.Ordinal);
         Assert.Contains("const funding = allDays.length ? num(allDays[0].runs[0].equity) : 0;",
             page, StringComparison.Ordinal);
 
@@ -184,7 +194,7 @@ public class CheckpointReplayTests
     [Theory]
     [InlineData("const positions = asOf ? [] : spreadsFromBroker();")]
     [InlineData("const closed = closedUpTo.map((c) => [")]
-    [InlineData("const inception = asOf ? funding : equity - realised - openPl;")]
+    [InlineData("const inception = allDays.length ? funding : equity - realised - openPl;")]
     [InlineData("positionCount: asOf")]
     [InlineData("curveTo: asOf ? asOfDay : feed.curveTo,")]
     [InlineData("const totalRisk = d.riskDeployed != null")]

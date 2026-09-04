@@ -79,7 +79,8 @@ public class DayTabTests
     [Fact]
     public void The_tabs_are_the_three_most_recent_sessions()
     {
-        Assert.Equal(["08.31", "09.01", "09.02"], Tabs());
+        // Thursday's cycles are in the log now, so Monday rolls off the left.
+        Assert.Equal(["09.01", "09.02", "09.03"], Tabs());
     }
 
     /// <summary>
